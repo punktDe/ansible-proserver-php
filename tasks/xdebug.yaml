@@ -1,0 +1,17 @@
+---
+- name: Copy Xdebug toggle script
+  copy: src="{{ item.src }}" dest="{{ item.dest }}" mode="{{ item.mode }}"
+  loop_control:
+    label: "{{ item.dest }}"
+  with_items:
+    - src: xdebug
+      dest: /usr/local/bin/xdebug
+      mode: "u+x,g+x,o+x"
+
+- name: Disable Xdebug
+  file: path="{{ item.path }}" state="{{ item.state }}"
+  loop_control:
+    label: "{{ item.path }}"
+  with_items:
+    - path: /usr/local/etc/php/ext-20-xdebug.ini
+      state: absent
