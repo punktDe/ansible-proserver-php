@@ -6,3 +6,12 @@ php:
     # If enabled, Ansible will disable Xdebug and provide the command "xdebug",
     # which can be used to enable/disable Xdebug when desired.
     disable_by_default: no
+  fpm:
+    prefix:
+      config: /usr/local/etc/php-fpm.d
+    pools:
+      default: www
+  phpfpmtop:
+    release:
+      url: https://github.com/punktDe/proserver-ansible-php/releases/download/phpfpmtop-v1/phpfpmtop-freebsd-amd64
+      checksum: sha256:2f1fb65ae33976fac2e976ac16c00f0126d3fe4980c4413e8bea54c518b16407

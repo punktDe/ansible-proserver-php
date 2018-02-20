@@ -1,0 +1,24 @@
+---
+- name: Enable PHP-FPM status API
+  lineinfile:
+    path: "{{ item }}"
+    regexp: "^;?pm\\.status_path[\\s\\t]*="
+    line: "pm.status_path = /php-fpm/status"
+  with_items: "{{ php.fpm.pools.values()|map('regex_replace', '^(.*)$', php.fpm.prefix.config + '/\\1.conf')|list }}"
+  notify: Restart PHP-FPM
+
+- name: Create install dir for phpfpmtop
+  file:
+    state: directory
+    path: "{{ item }}"
+  with_items:
+    - /var/www/bin
+
+- name: Install phpfpmtop
+  get_url:
+    url: "{{ php.phpfpmtop.release.url }}"
+    checksum: "{{ php.phpfpmtop.release.checksum }}"
+    dest: "{{ item }}"
+    mode: "u+x,g+x,o+x"
+  with_items:
+    - /var/www/bin/phpfpmtop
