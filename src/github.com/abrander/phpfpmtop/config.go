@@ -31,8 +31,8 @@ const (
 	// defaultConfig will be written to configFilename if none is found.
 	defaultConfig = `# Default section will be used if there's no arguments given to phpfpmtop.
 [default]
-listen = "/var/run/php5-fpm.sock"    # The value of the "listen" option in the PHP-FPM-pool config.
-status = "/status"                   # The value of the "status" option.
+listen = "/var/run/php-fpm/php-fpm.socket"    # The value of the "listen" option in the PHP-FPM-pool config.
+status = "/php-fpm/status"                    # The value of the "status" option.
 
 # If you define an URL, phpfpmtop will try to retrieve the status page via
 # HTTP. FPM options will be ignored.
