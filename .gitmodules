@@ -1,0 +1,6 @@
+[submodule "src/github.com/BurntSushi/toml"]
+	path = src/github.com/BurntSushi/toml
+	url = git@github.com:BurntSushi/toml.git
+[submodule "src/github.com/pkg/term"]
+	path = src/github.com/pkg/term
+	url = git@github.com:pkg/term.git
