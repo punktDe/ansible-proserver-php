@@ -11,6 +11,8 @@
   file:
     state: directory
     path: "{{ item }}"
+    owner: proserver
+    group: proserver
   with_items:
     - /var/www/bin
 
