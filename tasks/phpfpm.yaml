@@ -1,0 +1,15 @@
+---
+- name: Update PHP-FPM configuration
+  ini_file:
+    path: "{{ php_fpm_conf }}"
+    create: yes
+    section: "{{ item.pool }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    state: "{{ item.state }}"
+  loop_control:
+    label: "{{ php_fpm_conf }} {{ item.option }}={{ item.value }}"
+  vars:
+    php_fpm_conf: "{{ php.fpm.prefix.config }}/www.conf"
+  loop: "{{ php.fpm.pools|php_fpm_config_merge }}"
+  notify: Restart PHP-FPM
