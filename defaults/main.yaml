@@ -10,8 +10,7 @@ php:
     prefix:
       config: /usr/local/etc/php-fpm.d
     pools:
-      www:
-        php_admin_value[expose_php]: "off"
+      www: {}
   phpfpmtop:
     release:
       url: https://github.com/punktDe/proserver-ansible-php/releases/download/phpfpmtop-v1/phpfpmtop-freebsd-amd64
