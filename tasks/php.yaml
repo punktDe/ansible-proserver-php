@@ -1,0 +1,15 @@
+---
+- name: Update PHP configuration
+  ini_file:
+    path: "{{ php_ini }}"
+    create: no
+    section: PHP
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: "{{ 'absent' if item.value is none else 'present' }}"
+  loop_control:
+    label: "{{ php_ini }} {{ item.key }}={{ item.value }}"
+  vars:
+    php_ini: "{{ php.prefix.config }}/php.ini"
+  loop: "{{ php['php.ini']|dict2items }}"
+  notify: Restart PHP-FPM
