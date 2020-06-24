@@ -1,7 +1,12 @@
 ---
 php:
   prefix:
-    config: /usr/local/etc
+    config: >-
+      {%- if ansible_distribution == 'Ubuntu' -%}
+        /etc/php/7.4/fpm
+      {%- else -%}
+        /usr/local/etc
+      {%- endif -%}
   xdebug:
     # Xdebug is not installed in a real proServer environment.
     # This option is only useful in a development environment.
@@ -10,10 +15,27 @@ php:
     disable_by_default: no
   php.ini: {}
   fpm:
+    service: >-
+      {%- if ansible_distribution == 'Ubuntu' -%}
+        php7.4-fpm
+      {%- else -%}
+        php-fpm
+      {%- endif -%}
     prefix:
-      config: /usr/local/etc/php-fpm.d
+      config: >-
+        {%- if ansible_distribution == 'Ubuntu' -%}
+          /etc/php/7.4/fpm/pool.d
+        {%- else -%}
+          /usr/local/etc/php-fpm.d
+        {%- endif -%}
     pools:
-      www: {}
+      www:
+        listen: >-
+          {%- if ansible_distribution == 'Ubuntu' -%}
+            /run/php/php7.4-fpm.sock
+          {%- else -%}
+            /var/run/php-fpm/php-fpm.socket
+          {%- endif -%}
   phpfpmtop:
     release:
       url: https://github.com/punktDe/proserver-ansible-php/releases/download/phpfpmtop-v1/phpfpmtop-freebsd-amd64

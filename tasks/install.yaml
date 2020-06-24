@@ -1,0 +1,15 @@
+- when: ansible_distribution == 'Ubuntu'
+  block:
+
+    - name: Install PHP
+      apt:
+        name:
+          - php-cli
+          - php-fpm
+
+    - name: Use same php.ini for cli and fpm processes
+      file:
+        src: ../fpm/php.ini
+        dest: "{{ php.prefix.config }}/../cli/php.ini"
+        state: link
+        force: yes

@@ -1,4 +1,5 @@
 ---
+- import_tasks: install.yaml
 - import_tasks: xdebug.yaml
   when: php.xdebug.disable_by_default
 - import_tasks: phpfpmtop.yaml
