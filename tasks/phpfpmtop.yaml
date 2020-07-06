@@ -24,3 +24,23 @@
     mode: "u+x,g+x,o+x"
   with_items:
     - /var/www/bin/phpfpmtop
+
+- name: Configure phpfpmtop
+  vars:
+    php_phpfpmtop_config_file: /var/www/.phpfpmtop.conf
+  loop:
+    - section: default
+      option: listen
+      value: '"{{ php.fpm.pools.www.listen }}"'
+    - section: default
+      option: status
+      value: '"/php-fpm/status"'
+  loop_control:
+    label: "{{ php_phpfpmtop_config_file }} {{ item.section }}[{{ item.option }}]={{ item.value }}"
+  ini_file:
+    path: "{{ php_phpfpmtop_config_file }}"
+    section: "{{ item.section }}"
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
+    owner: proserver
+    group: proserver

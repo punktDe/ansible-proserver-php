@@ -30,6 +30,15 @@ php:
         {%- endif -%}
     pools:
       www:
+        user: proserver
+        group: proserver
+        listen.owner: proserver
+        listen.group: >-
+          {%- if ansible_system == 'Linux' -%}
+            www-data
+          {%- else -%}
+            www
+          {%- endif -%}
         listen: >-
           {%- if ansible_distribution == 'Ubuntu' -%}
             /run/php/php7.4-fpm.sock
@@ -38,6 +47,16 @@ php:
           {%- endif -%}
   phpfpmtop:
     release:
-      url: https://github.com/punktDe/proserver-ansible-php/releases/download/phpfpmtop-v1/phpfpmtop-freebsd-amd64
-      checksum: sha256:2f1fb65ae33976fac2e976ac16c00f0126d3fe4980c4413e8bea54c518b16407
+      url: >-
+        {%- if ansible_system == 'Linux' -%}
+          https://github.com/abrander/phpfpmtop/releases/download/v0.2/phpfpmtop_linux_amd64
+        {%- else -%}
+          https://github.com/punktDe/proserver-ansible-php/releases/download/phpfpmtop-v1/phpfpmtop-freebsd-amd64
+        {%- endif -%}
+      checksum: >-
+        {%- if ansible_system == 'Linux' -%}
+          sha256:59be43ae507c3229d186f0dc71e51aa46f9322de6a9867c3c684656bc8ab947d
+        {%- else -%}
+          sha256:2f1fb65ae33976fac2e976ac16c00f0126d3fe4980c4413e8bea54c518b16407
+        {%- endif -%}
   install_extensions: {}
