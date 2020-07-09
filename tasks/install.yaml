@@ -4,6 +4,7 @@
     - name: Install PHP
       apt:
         name: "{{ ['php-cli', 'php-fpm'] + php.install_extensions.items()|selectattr('1', 'eq', true)|map(attribute='0')|map('regex_replace', '^', 'php-')|list }}"
+      notify: Restart PHP-FPM
 
     - name: Use same php.ini for cli and fpm processes
       file:
