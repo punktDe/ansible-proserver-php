@@ -60,3 +60,4 @@ php:
           sha256:2f1fb65ae33976fac2e976ac16c00f0126d3fe4980c4413e8bea54c518b16407
         {%- endif -%}
   install_extensions: {}
+  install_composer: no
