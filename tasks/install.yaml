@@ -3,7 +3,7 @@
 
     - name: Install PHP and extensions
       apt:
-        name: "{{ ['php-fpm'] + php.install_extensions.items()|selectattr('1', 'eq', true)|map(attribute='0')|map('regex_replace', '^', 'php-')|list + ['composer'] if php.install_composer else [] }}"
+        name: "{{ ['php-fpm'] + php.install_extensions.items()|selectattr('1', 'eq', true)|map(attribute='0')|map('regex_replace', '^', 'php-')|list + (['composer'] if php.install_composer else []) }}"
       notify: Restart PHP-FPM
 
     - name: Use same php.ini for cli and fpm processes
