@@ -3,7 +3,7 @@ php:
   prefix:
     config: >-
       {%- if ansible_distribution == 'Ubuntu' -%}
-        /etc/php/7.4/fpm
+        /etc/php/7.4/cli
       {%- else -%}
         /usr/local/etc
       {%- endif -%}
@@ -23,6 +23,12 @@ php:
       {%- endif -%}
     prefix:
       config: >-
+        {%- if ansible_distribution == 'Ubuntu' -%}
+          /etc/php/7.4/fpm
+        {%- else -%}
+          /usr/local/etc
+        {%- endif -%}
+      pool_config: >-
         {%- if ansible_distribution == 'Ubuntu' -%}
           /etc/php/7.4/fpm/pool.d
         {%- else -%}

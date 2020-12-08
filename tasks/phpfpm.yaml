@@ -10,6 +10,6 @@
   loop_control:
     label: "{{ php_fpm_conf }} {{ item.option }}={{ item.value }}"
   vars:
-    php_fpm_conf: "{{ php.fpm.prefix.config }}/www.conf"
+    php_fpm_conf: "{{ php.fpm.prefix.pool_config }}/www.conf"
   loop: "{{ php.fpm.pools|php_fpm_config_merge }}"
   notify: Restart PHP-FPM

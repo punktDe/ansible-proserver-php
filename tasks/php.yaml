@@ -4,12 +4,14 @@
     path: "{{ php_ini }}"
     create: no
     section: PHP
-    option: "{{ item.key }}"
-    value: "{{ item.value }}"
-    state: "{{ 'absent' if item.value is none else 'present' }}"
+    option: "{{ key }}"
+    value: "{{ value }}"
+    state: "{{ 'absent' if value is none else 'present' }}"
   loop_control:
-    label: "{{ php_ini }} {{ item.key }}={{ item.value }}"
+    label: "{{ php_ini }} {{ key }}={{ value }}"
   vars:
-    php_ini: "{{ php.prefix.config }}/php.ini"
-  loop: "{{ php['php.ini']|dict2items }}"
+    php_ini: "{{ item.0 }}"
+    key: "{{ item.1.0 }}"
+    value: "{{ item.1.1 }}"
+  loop: "{{ [php.prefix.config + '/php.ini', php.fpm.prefix.config + '/php.ini']|unique|product(php['php.ini'].items())|list }}"
   notify: Restart PHP-FPM
