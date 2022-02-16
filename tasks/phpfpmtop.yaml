@@ -24,6 +24,9 @@
     mode: "u+x,g+x,o+x"
   with_items:
     - /var/www/bin/phpfpmtop
+  # Workaround for issues with NAT64 gateway
+  retries: 5
+  delay: 2
 
 - name: Configure phpfpmtop
   vars:
