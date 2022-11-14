@@ -1,9 +1,15 @@
 ---
+php_version: >-
+  {%- if ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'jammy' -%}
+    8.1
+  {%- else -%}
+    7.4
+  {%- endif -%}
 php:
   prefix:
     config: >-
       {%- if ansible_distribution == 'Ubuntu' -%}
-        /etc/php/7.4/cli
+        /etc/php/{{ php_version }}/cli
       {%- else -%}
         /usr/local/etc
       {%- endif -%}
@@ -17,20 +23,20 @@ php:
   fpm:
     service: >-
       {%- if ansible_distribution == 'Ubuntu' -%}
-        php7.4-fpm
+        php{{ php_version }}-fpm
       {%- else -%}
         php-fpm
       {%- endif -%}
     prefix:
       config: >-
         {%- if ansible_distribution == 'Ubuntu' -%}
-          /etc/php/7.4/fpm
+          /etc/php/{{ php_version }}/fpm
         {%- else -%}
           /usr/local/etc
         {%- endif -%}
       pool_config: >-
         {%- if ansible_distribution == 'Ubuntu' -%}
-          /etc/php/7.4/fpm/pool.d
+          /etc/php/{{ php_version }}/fpm/pool.d
         {%- else -%}
           /usr/local/etc/php-fpm.d
         {%- endif -%}
@@ -47,7 +53,7 @@ php:
           {%- endif -%}
         listen: >-
           {%- if ansible_distribution == 'Ubuntu' -%}
-            /run/php/php7.4-fpm.sock
+            /run/php/php{{ php_version }}-fpm.sock
           {%- else -%}
             /var/run/php-fpm/php-fpm.socket
           {%- endif -%}
