@@ -1,6 +1,10 @@
 ---
 php_version: >-
-  {{ '8.1' if (ansible_distribution == 'Ubuntu') and (ansible_distribution_release | lower == 'jammy') else '7.4' }}
+  {%- if ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'jammy' -%}
+    8.1
+  {%- else -%}
+    7.4
+  {%- endif -%}
 php:
   prefix:
     config: >-
