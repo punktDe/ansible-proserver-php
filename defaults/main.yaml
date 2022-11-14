@@ -1,15 +1,11 @@
 ---
+php_version: >-
+  {{ '8.1' if (ansible_distribution == 'Ubuntu') and (ansible_distribution_release | lower == 'jammy') else '7.4' }}
 php:
-  version: >-
-    {%- if ansible_distribution == 'Ubuntu' and (ansible_distribution_release | lower) == 'jammy' -%}
-      "8.1"
-    {%- else -%}
-      "7.4"
-    {%- endif -%}
   prefix:
     config: >-
       {%- if ansible_distribution == 'Ubuntu' -%}
-        "/etc/php/{{ vars.php.version }}/cli"
+        /etc/php/{{ php_version }}/cli
       {%- else -%}
         /usr/local/etc
       {%- endif -%}
@@ -23,20 +19,20 @@ php:
   fpm:
     service: >-
       {%- if ansible_distribution == 'Ubuntu' -%}
-        "php{{ vars.php.version }}-fpm"
+        php{{ php_version }}-fpm
       {%- else -%}
         php-fpm
       {%- endif -%}
     prefix:
       config: >-
         {%- if ansible_distribution == 'Ubuntu' -%}
-          "/etc/php/{{ vars.php.version }}/fpm"
+          /etc/php/{{ php_version }}/fpm
         {%- else -%}
           /usr/local/etc
         {%- endif -%}
       pool_config: >-
         {%- if ansible_distribution == 'Ubuntu' -%}
-          "/etc/php/{{ vars.php.version }}/fpm/pool.d"
+          /etc/php/{{ php_version }}/fpm/pool.d
         {%- else -%}
           /usr/local/etc/php-fpm.d
         {%- endif -%}
@@ -53,7 +49,7 @@ php:
           {%- endif -%}
         listen: >-
           {%- if ansible_distribution == 'Ubuntu' -%}
-            "/run/php/php{{ vars.php.version }}-fpm.sock"
+            /run/php/php{{ php_version }}-fpm.sock
           {%- else -%}
             /var/run/php-fpm/php-fpm.socket
           {%- endif -%}
