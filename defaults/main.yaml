@@ -20,9 +20,11 @@ php:
     # which can be used to enable/disable Xdebug when desired.
     disable_by_default: no
   php.ini: >-
-    {%- if ansible_system == 'FreeBSD' -%}
-      { expose_php: 'Off', max_execution_time: '240', max_input_vars: '1500', memory_limit: '512M', post_max_size: '50M', upload_max_filesize: '50M', date.timezone: 'Europe/Berlin', mail.add_x_header: 'On'}
-    {%- endif -%}
+    {%- set config_overrides = {} -%}
+      {%- if ansible_system == 'FreeBSD' -%}
+        {%- set _ = user_authorized_key_list.update({{ php_proserver_overrides}}) -%}
+      {%- endif -%}
+    {{- config_overrides -}}
   fpm:
     service: >-
       {%- if ansible_distribution == 'Ubuntu' -%}
