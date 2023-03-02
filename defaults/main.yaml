@@ -19,12 +19,7 @@ php:
     # If enabled, Ansible will disable Xdebug and provide the command "xdebug",
     # which can be used to enable/disable Xdebug when desired.
     disable_by_default: no
-  php.ini: >-
-    {%- set config_overrides = {} -%}
-      {%- if ansible_system == 'FreeBSD' -%}
-        {%- set _ = user_authorized_key_list.update({{ php_proserver_overrides}}) -%}
-      {%- endif -%}
-    {{- config_overrides -}}
+  php.ini: {}
   fpm:
     service: >-
       {%- if ansible_distribution == 'Ubuntu' -%}
