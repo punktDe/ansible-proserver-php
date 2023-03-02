@@ -13,7 +13,17 @@ php:
     # If enabled, Ansible will disable Xdebug and provide the command "xdebug",
     # which can be used to enable/disable Xdebug when desired.
     disable_by_default: no
-  php.ini: {}
+  php.ini: >-
+    {%- if ansible_system == 'FreeBSD' -%}
+      expose_php: 'Off'
+      max_execution_time: '240'
+      max_input_vars: '1500'
+      memory_limit: '512M'
+      post_max_size: '50M'
+      upload_max_filesize: '50M'
+      date.timezone: 'Europe/Berlin'
+      mail.add_x_header: 'On'
+    {%- endif -%}
   fpm:
     service: >-
       {%- if ansible_distribution == 'Ubuntu' -%}
