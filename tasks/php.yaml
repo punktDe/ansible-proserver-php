@@ -1,4 +1,21 @@
 ---
+- name: Template the overrides file
+  ini_file:
+    path: "{{ php.prefix.config }}/php/AAA-01-proserver.ini"
+    create: no
+    section: null
+    option: "{{ key }}"
+    value: "{{ value }}"
+    state: "{{ 'absent' if key is in php['php.ini'] else 'present' }}"
+  loop_control:
+    label: "{{ key }}={{ value }}"
+  vars:
+    key: "{{ item.0 }}"
+    value: "{{ item.1 }}"
+  loop: "{{ php_proserver_overrides | items() }}"
+  when: "ansible_system == 'FreeBSD'"
+  notify: Restart PHP-FPM
+
 - name: Update PHP configuration
   ini_file:
     path: "{{ php_ini }}"
