@@ -17,6 +17,7 @@
     - /var/www/bin
 
 - name: Install phpfpmtop
+  ignore_errors: "{{ ansible_check_mode }}"
   get_url:
     url: "{{ php.phpfpmtop.release.url }}"
     checksum: "{{ php.phpfpmtop.release.checksum }}"
