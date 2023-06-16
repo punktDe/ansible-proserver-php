@@ -1,6 +1,6 @@
 ---
 - name: Template the overrides file
-  ini_file:
+  community.general.ini_file:
     path: "{{ php.prefix.config }}/php/AAA-01-proserver.ini"
     create: no
     section: null
@@ -17,7 +17,7 @@
   notify: Restart PHP-FPM
 
 - name: Update PHP configuration
-  ini_file:
+  community.general.ini_file:
     path: "{{ php_ini }}"
     create: no
     section: PHP
@@ -30,5 +30,5 @@
     php_ini: "{{ item.0 }}"
     key: "{{ item.1.0 }}"
     value: "{{ item.1.1 }}"
-  loop: "{{ [php.prefix.config + '/php.ini', php.fpm.prefix.config + '/php.ini']|unique|product(php['php.ini'].items())|list }}"
+  loop: "{{ [php.prefix.config + '/php.ini', php.fpm.prefix.config + '/php.ini'] | unique | product(php['php.ini'].items()) | list }}"
   notify: Restart PHP-FPM
