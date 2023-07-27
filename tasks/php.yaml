@@ -3,7 +3,7 @@
   ini_file:
     path: "{{ php.prefix.config }}/php/AAA-01-proserver.ini"
     create: no
-    section: null
+    section: ''
     option: "{{ key }}"
     value: "{{ value }}"
     state: "{{ 'absent' if key is in php['php.ini'] else 'present' }}"
@@ -15,7 +15,6 @@
   loop: "{{ php_proserver_overrides | items() }}"
   when: "ansible_system == 'FreeBSD'"
   notify: Restart PHP-FPM
-
 - name: Update PHP configuration
   ini_file:
     path: "{{ php_ini }}"
