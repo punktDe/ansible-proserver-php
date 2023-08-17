@@ -40,7 +40,7 @@ jobs:
           pip install ansible docker molecule molecule-plugins
 
       - name: Install Galaxy dependencies.
-        run: ansible-galaxy collection install community.docker community.mysql
+        run: ansible-galaxy collection install -f community.docker community.mysql ansible.posix
 
       - name: Run molecule
         run: "molecule test"
