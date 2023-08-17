@@ -8,13 +8,11 @@
     value: "{{ value }}"
     state: "{{ 'absent' if key is in php['php.ini'] else 'present' }}"
   loop_control:
-    label: "{{ key }}={{ value }}"
-  vars:
-    key: "{{ item.0 }}"
-    value: "{{ item.1 }}"
-  loop: "{{ php_proserver_overrides | items() }}"
+    label: "{{ item.key }}={{ item.value }}"
+  loop: "{{ php_proserver_overrides | dict2items() }}"
   when: ansible_system == 'FreeBSD'
   notify: Restart PHP-FPM
+
 - name: Update PHP configuration
   community.general.ini_file:
     path: "{{ php_ini }}"
