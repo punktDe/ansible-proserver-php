@@ -1,15 +1,16 @@
 ---
 - name: Copy Xdebug toggle script
-  copy: src="{{ item.src }}" dest="{{ item.dest }}" mode="{{ item.mode }}"
-  loop_control:
-    label: "{{ item.dest }}"
-  with_items:
-    - src: xdebug
-      dest: /usr/local/bin/xdebug
-      mode: "u+x,g+x,o+x"
+  ansible.builtin.copy:
+    src: "xdebug"
+    dest: /usr/local/bin/xdebug
+    mode: "0755"
 
 - name: Disable Xdebug
-  file: path="{{ item.path }}" state="{{ item.state }}"
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: "{{ item.state }}"
+    mode: "0644"
+    owner: root
   loop_control:
     label: "{{ item.path }}"
   with_items:

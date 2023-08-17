@@ -1,2 +1,8 @@
 ---
-dependencies: []
+galaxy_info:
+  author: "Punkt.de"
+  license: ""
+  description: "Apache role for PHP"
+  role_name: "proserver_php"
+  namespace: "punktde"
+  min_ansible_version: "2.15"

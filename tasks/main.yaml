@@ -1,7 +1,17 @@
 ---
-- import_tasks: install.yaml
-- import_tasks: xdebug.yaml
+- name: Install PHP and extensions (Ubuntu)
+  when: ansible_distribution == 'Ubuntu'
+  ansible.builtin.import_tasks: install.yaml
+
+- name: Set up XDebug
   when: php.xdebug.disable_by_default
-- import_tasks: phpfpmtop.yaml
-- import_tasks: phpfpm.yaml
-- import_tasks: php.yaml
+  ansible.builtin.import_tasks: xdebug.yaml
+
+- name: Set up phpfpmtop
+  ansible.builtin.import_tasks: phpfpmtop.yaml
+
+- name: Configure PHP-FPM
+  ansible.builtin.import_tasks: phpfpm.yaml
+
+- name: Configure PHP
+  ansible.builtin.import_tasks: php.yaml

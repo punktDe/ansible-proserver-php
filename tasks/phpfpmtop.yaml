@@ -1,28 +1,29 @@
 ---
 - name: Enable PHP-FPM status API
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ item }}"
     regexp: "^;?pm\\.status_path[\\s\\t]*="
     line: "pm.status_path = /php-fpm/status"
-  with_items: "{{ php.fpm.pools.keys()|map('regex_replace', '^(.*)$', php.fpm.prefix.pool_config + '/\\1.conf')|list }}"
+  with_items: "{{ php.fpm.pools.keys() | map('regex_replace', '^(.*)$', php.fpm.prefix.pool_config + '/\\1.conf') | list }}"
   notify: Restart PHP-FPM
 
 - name: Create install dir for phpfpmtop
-  file:
+  ansible.builtin.file:
     state: directory
     path: "{{ item }}"
     owner: proserver
     group: proserver
+    mode: "0755"
   with_items:
     - /var/www/bin
 
 - name: Install phpfpmtop
   ignore_errors: "{{ ansible_check_mode }}"
-  get_url:
+  ansible.builtin.get_url:
     url: "{{ php.phpfpmtop.release.url }}"
     checksum: "{{ php.phpfpmtop.release.checksum }}"
     dest: "{{ item }}"
-    mode: "u+x,g+x,o+x"
+    mode: "0755"
   with_items:
     - /var/www/bin/phpfpmtop
   # Workaround for issues with NAT64 gateway
@@ -41,10 +42,11 @@
       value: '"/php-fpm/status"'
   loop_control:
     label: "{{ php_phpfpmtop_config_file }} {{ item.section }}[{{ item.option }}]={{ item.value }}"
-  ini_file:
+  community.general.ini_file:
     path: "{{ php_phpfpmtop_config_file }}"
     section: "{{ item.section }}"
     option: "{{ item.option }}"
     value: "{{ item.value }}"
     owner: proserver
     group: proserver
+    mode: "0644"
