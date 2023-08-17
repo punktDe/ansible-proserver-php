@@ -13,7 +13,7 @@
     key: "{{ item.0 }}"
     value: "{{ item.1 }}"
   loop: "{{ php_proserver_overrides | items() }}"
-  when: "ansible_system == 'FreeBSD'"
+  when: ansible_system == 'FreeBSD'
   notify: Restart PHP-FPM
 - name: Update PHP configuration
   community.general.ini_file:
