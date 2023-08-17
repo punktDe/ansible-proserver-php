@@ -1,12 +1,20 @@
 ---
+- name: Make sure that the configuration folder exists
+  ansible.builtin.file:
+    path: "{{ php.prefix.config }}/php"
+    owner: root
+    mode: "0755"
+    state: directory
+
 - name: Template the overrides file
   community.general.ini_file:
     path: "{{ php.prefix.config }}/php/AAA-01-proserver.ini"
-    create: no
     section: ''
-    option: "{{ key }}"
-    value: "{{ value }}"
-    state: "{{ 'absent' if key is in php['php.ini'] else 'present' }}"
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: "{{ 'absent' if item.key is in php['php.ini'] else 'present' }}"
+    mode: "0644"
+    owner: root
   loop_control:
     label: "{{ item.key }}={{ item.value }}"
   loop: "{{ php_proserver_overrides | dict2items() }}"
@@ -16,11 +24,12 @@
 - name: Update PHP configuration
   community.general.ini_file:
     path: "{{ php_ini }}"
-    create: no
     section: PHP
     option: "{{ key }}"
     value: "{{ value }}"
     state: "{{ 'absent' if value is none else 'present' }}"
+    owner: root
+    mode: "0644"
   loop_control:
     label: "{{ php_ini }} {{ key }}={{ value }}"
   vars:
