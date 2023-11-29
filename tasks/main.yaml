@@ -1,6 +1,9 @@
 ---
-- name: Install PHP and extensions (Ubuntu)
-  when: ansible_distribution == 'Ubuntu'
+
+- name: Set PHP version
+
+- name: Install PHP and extensions (Ubuntu/Debian)
+  when: ansible_os_family == 'Debian'
   ansible.builtin.import_tasks: install.yaml
 
 - name: Set up XDebug

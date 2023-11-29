@@ -1,14 +1,8 @@
 ---
-php_version: >-
-  {%- if ansible_distribution == 'Ubuntu' and ansible_distribution_release == 'jammy' -%}
-    8.1
-  {%- else -%}
-    7.4
-  {%- endif -%}
 php:
   prefix:
     config: >-
-      {%- if ansible_distribution == 'Ubuntu' -%}
+      {%- if ansible_os_family == 'Debian' -%}
         /etc/php/{{ php_version }}/cli
       {%- else -%}
         /usr/local/etc
@@ -22,20 +16,20 @@ php:
   php.ini: {}
   fpm:
     service: >-
-      {%- if ansible_distribution == 'Ubuntu' -%}
+      {%- if ansible_os_family == 'Debian' -%}
         php{{ php_version }}-fpm
       {%- else -%}
         php-fpm
       {%- endif -%}
     prefix:
       config: >-
-        {%- if ansible_distribution == 'Ubuntu' -%}
+        {%- if ansible_os_family == 'Debian' -%}
           /etc/php/{{ php_version }}/fpm
         {%- else -%}
           /usr/local/etc
         {%- endif -%}
       pool_config: >-
-        {%- if ansible_distribution == 'Ubuntu' -%}
+        {%- if ansible_os_family == 'Debian' -%}
           /etc/php/{{ php_version }}/fpm/pool.d
         {%- else -%}
           /usr/local/etc/php-fpm.d
@@ -52,7 +46,7 @@ php:
             www
           {%- endif -%}
         listen: >-
-          {%- if ansible_distribution == 'Ubuntu' -%}
+          {%- if ansible_os_family == 'Debian' -%}
             /run/php/php{{ php_version }}-fpm.sock
           {%- else -%}
             /var/run/php-fpm/php-fpm.socket
