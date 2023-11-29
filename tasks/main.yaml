@@ -1,14 +1,14 @@
 ---
 
-- name: Set PHP version
-
 - name: Install PHP and extensions (Ubuntu/Debian)
   when: ansible_os_family == 'Debian'
   ansible.builtin.import_tasks: install.yaml
 
-- name: Set up XDebug
-  when: php.xdebug.disable_by_default
-  ansible.builtin.import_tasks: xdebug.yaml
+- name: Get PHP version
+  changed_when: no
+  register: php_version
+  ansible.builtin.command:
+    cmd: "php -r 'echo phpversion();' | grep -o '[0-9]\\.[0-9]'"
 
 - name: Set up phpfpmtop
   ansible.builtin.import_tasks: phpfpmtop.yaml
