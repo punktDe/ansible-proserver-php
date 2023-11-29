@@ -1,20 +1,7 @@
 ---
-
 - name: Install PHP and extensions (Ubuntu/Debian)
   when: ansible_os_family == 'Debian'
   ansible.builtin.import_tasks: install.yaml
-
-- name: Get PHP version
-  changed_when: no
-  register: php_version
-  ansible.builtin.shell:
-    cmd: >-
-      php -r 'echo phpversion();' | grep -o '[0-9]\.[0-9]'
-
-- name: Set PHP version fact
-  ansible.builtin.set_fact: 
-    php:
-      version: "{{ php_version.stdout }}"
 
 - name: Set up phpfpmtop
   ansible.builtin.import_tasks: phpfpmtop.yaml

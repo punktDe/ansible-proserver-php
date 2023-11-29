@@ -1,10 +1,10 @@
 ---
+php_version:
 php:
-  version:
   prefix:
     config: >-
       {%- if ansible_os_family == 'Debian' -%}
-        /etc/php/{{ vars.php.version }}/cli
+        /etc/php/{{ php_version }}/cli
       {%- else -%}
         /usr/local/etc
       {%- endif -%}
@@ -18,20 +18,20 @@ php:
   fpm:
     service: >-
       {%- if ansible_os_family == 'Debian' -%}
-        php{{ vars.php.version }}-fpm
+        php{{ php_version }}-fpm
       {%- else -%}
         php-fpm
       {%- endif -%}
     prefix:
       config: >-
         {%- if ansible_os_family == 'Debian' -%}
-          /etc/php/{{ vars.php.version }}/fpm
+          /etc/php/{{ php_version }}/fpm
         {%- else -%}
           /usr/local/etc
         {%- endif -%}
       pool_config: >-
         {%- if ansible_os_family == 'Debian' -%}
-          /etc/php/{{ vars.php.version }}/fpm/pool.d
+          /etc/php/{{ php_version }}/fpm/pool.d
         {%- else -%}
           /usr/local/etc/php-fpm.d
         {%- endif -%}
@@ -48,7 +48,7 @@ php:
           {%- endif -%}
         listen: >-
           {%- if ansible_os_family == 'Debian' -%}
-            /run/php/php{{ vars.php.version }}-fpm.sock
+            /run/php/php{{ php_version }}-fpm.sock
           {%- else -%}
             /var/run/php-fpm/php-fpm.socket
           {%- endif -%}
