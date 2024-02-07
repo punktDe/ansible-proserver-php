@@ -18,6 +18,7 @@
 - name: Get PHP version
   changed_when: no
   register: php_version_full
+  check_mode: no
   ansible.builtin.shell:
     cmd: >-
       php -r 'echo phpversion();' | grep -o '[0-9]\.[0-9]' | head -n1
