@@ -1,13 +1,16 @@
 ---
+- name: Set the PHP version
+  ansible.builtin.include_tasks: phpversion.yaml
+
 - name: Install PHP and extensions (Ubuntu/Debian)
   when: ansible_os_family == 'Debian'
-  ansible.builtin.import_tasks: install.yaml
+  ansible.builtin.include_tasks: install.yaml
 
 - name: Set up phpfpmtop
-  ansible.builtin.import_tasks: phpfpmtop.yaml
+  ansible.builtin.include_tasks: phpfpmtop.yaml
 
 - name: Configure PHP-FPM
-  ansible.builtin.import_tasks: phpfpm.yaml
+  ansible.builtin.include_tasks: phpfpm.yaml
 
 - name: Configure PHP
-  ansible.builtin.import_tasks: php.yaml
+  ansible.builtin.include_tasks: php.yaml

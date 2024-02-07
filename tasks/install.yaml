@@ -14,15 +14,3 @@
         map('regex_replace', '^', 'php-') |
         list + (['composer'] if php.install_composer else [])
       }}
-
-- name: Get PHP version
-  changed_when: no
-  register: php_version_full
-  check_mode: no
-  ansible.builtin.shell:
-    cmd: >-
-      php -r 'echo phpversion();' | grep -o '[0-9]\.[0-9]' | head -n1
-
-- name: Set PHP version fact
-  ansible.builtin.set_fact: 
-    php_version: "{{ php_version_full.stdout }}"

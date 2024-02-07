@@ -4,6 +4,7 @@ skip_list:
   - 'role-name'
 
 warn_list:
+  - jinja[spacing]
   - package-latest
   - unnamed-task
   - command-instead-of-shell
