@@ -11,7 +11,7 @@
   ansible.builtin.shell:
     cmd: >-
       {%- if ansible_os_family == 'Debian' -%}
-      apt-cache search --names-only "^php[0-9].[0-9]$" |  awk '{print $1}'
+      apt-cache search --names-only "^php[0-9].[0-9]$" | grep -o '[0-9]\.[0-9]'
       {%- elif ansible_os_family == 'FreeBSD' -%}
       # PHP is already installed on the Proserver hosts, no need to query the packages
       php -r 'echo phpversion();' | grep -o '[0-9]\.[0-9]' | head -n1
