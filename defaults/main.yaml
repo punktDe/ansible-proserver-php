@@ -1,14 +1,7 @@
 ---
-php_version:
-# Undefined by default, is populated during the run
 php:
-  prefix:
-    config: >-
-      {%- if ansible_os_family == 'Debian' -%}
-        /etc/php/{{ php_version }}/cli
-      {%- else -%}
-        /usr/local/etc
-      {%- endif -%}
+  version: "{{ ansible_local.php.version }}"
+  prefix: "{{ ansible_local.php.prefix }}"
   xdebug:
     # Xdebug is not installed in a real proServer environment.
     # This option is only useful in a development environment.
@@ -17,42 +10,15 @@ php:
     disable_by_default: no
   php.ini: {}
   fpm:
-    service: >-
-      {%- if ansible_os_family == 'Debian' -%}
-        php{{ php_version }}-fpm
-      {%- else -%}
-        php_fpm
-      {%- endif -%}
-    prefix:
-      config: >-
-        {%- if ansible_os_family == 'Debian' -%}
-          /etc/php/{{ php_version }}/fpm
-        {%- else -%}
-          /usr/local/etc
-        {%- endif -%}
-      pool_config: >-
-        {%- if ansible_os_family == 'Debian' -%}
-          /etc/php/{{ php_version }}/fpm/pool.d
-        {%- else -%}
-          /usr/local/etc/php-fpm.d
-        {%- endif -%}
+    service: "{{ ansible_local.php.fpm.service }}"
+    prefix: "{{ ansible_local.php.fpm.prefix }}"
     pools:
       www:
         user: proserver
         group: proserver
         listen.owner: proserver
-        listen.group: >-
-          {%- if ansible_system == 'Linux' -%}
-            www-data
-          {%- else -%}
-            www
-          {%- endif -%}
-        listen: >-
-          {%- if ansible_os_family == 'Debian' -%}
-            /run/php/php{{ php_version }}-fpm.sock
-          {%- else -%}
-            /var/run/php-fpm/php-fpm.socket
-          {%- endif -%}
+        listen.group: "{{ ansible_local.php.fpm.pools.www['listen.group'] }}"
+        listen: "{{ ansible_local.php.fpm.pools.www.listen }}"
   phpfpmtop:
     release:
       url: >-
