@@ -5,10 +5,13 @@
     update_cache: yes
 
 - name: Create directory for Ansible facts
+  loop:
+    - "/etc/ansible"
+    - "/etc/ansible/facts.d"
   ansible.builtin.file:
     mode: "0755"
     owner: root
-    path: "/etc/ansible/facts.d"
+    path: "{{ item }}"
     state: directory
 
 - name: Template PHP facts
