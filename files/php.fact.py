@@ -59,7 +59,7 @@ class PHPFacts:
                     'pools': {
                         'www': {
                             'listen.group': 'www' if os_family == "freebsd" else "www-data",
-                            'listen': '/var/run/php-fpm/php-fpm.socket' if os_family == "freebsd" else f'/run/php/php{self.get_php_version()}-fpm.socket',
+                            'listen': '/var/run/php-fpm/php-fpm.socket' if os_family == "freebsd" else f'/run/php/php{self.get_php_version()}-fpm.sock',
                 }}}}
 
 
