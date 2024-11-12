@@ -22,3 +22,13 @@
 - name: Set PHP version fact
   ansible.builtin.set_fact:
     php_version: "{{ php_version_full.stdout }}"
+
+- name: Set the PHP FPM service name fact
+  when: "ansible_os_family == 'FreeBSD' and ansible_local.proserver is defined"
+  ansible.builtin.set_fact:
+    php: "{{ php | ansible.builtin.combine({'fpm': {'service': php_fpm_service_name}}) }}"
+  vars:
+    blueprint: "{{ ansible_local.proserver.blueprint }}"
+    blueprint_date: "{{ blueprint.year }}.{{ blueprint.quarter }}.blueprint_version }}"
+    php_fpm_service_name: >-
+      {{ "php_fpm" if blueprint_date is version('24.4.1', '>=') else "php-fpm" }}

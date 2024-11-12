@@ -21,7 +21,7 @@ php:
       {%- if ansible_os_family == 'Debian' -%}
         php{{ php_version }}-fpm
       {%- else -%}
-        php-fpm
+        php_fpm
       {%- endif -%}
     prefix:
       config: >-
