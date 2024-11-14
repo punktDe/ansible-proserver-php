@@ -1,0 +1,28 @@
+---
+- name: Update apt cache (Debian-based)
+  when: "ansible_os_family == 'Debian'"
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Create directory for Ansible facts
+  loop:
+    - "/etc/ansible"
+    - "/etc/ansible/facts.d"
+  ansible.builtin.file:
+    mode: "0755"
+    owner: root
+    path: "{{ item }}"
+    state: directory
+
+- name: Template PHP facts
+  ansible.builtin.copy:
+    owner: root
+    src: php.fact.py
+    dest: "/etc/ansible/facts.d/php.fact"
+    mode: a+x
+  register: php_template_fact_result
+
+- name: Reload facts
+  when: php_template_fact_result.changed
+  changed_when: yes
+  ansible.builtin.setup: {}
