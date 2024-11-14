@@ -6,7 +6,6 @@
 - name: Install PHP and extensions
   notify: Restart PHP-FPM
   ansible.builtin.apt:
-    update-cache: yes
     name: >-
       {{
         ['php-fpm'] + php.install_extensions.items() |

@@ -1,19 +1,28 @@
 #!/usr/bin/env python3
 from pathlib import Path
+import os
+import re
 import json
 import subprocess
 
 class PhpFacts:           
     def get_os_family(self) -> str:
-        os_vars = {}
-        with open("/etc/os-release", "r", encoding="utf-8") as os_release:
-            for line in os_release.readlines():
-                key, value = line.split("=")
-                os_vars.update({key: value})
-        if os_vars.get("ID_LIKE"):
-            os_family = str(os_vars.get("ID_LIKE")).lower().strip()
+        if os.path.exists("/etc/os-release"):
+            os_vars = {}
+            with open("/etc/os-release", "r", encoding="utf-8") as os_release:
+                for line in os_release.readlines():
+                    key, value = line.split("=")
+                    os_vars.update({key: value})
+            if os_vars.get("ID_LIKE"):
+                os_family = str(os_vars.get("ID_LIKE")).lower().strip()
+            else:
+                os_family = str(os_vars.get("ID")).lower().strip()
         else:
-            os_family = str(os_vars.get("ID")).lower().strip()
+            os_family = re.findall(r"debian|freebsd", os.uname().version.lower())
+            if len(os_family) == 0:
+                raise OSError(f"Unsupported OS family: {os.uname().version}")
+            else:
+                os_family = os_family[0]
         if os_family == "debian" or os_family == "freebsd":
             return os_family
         else:
