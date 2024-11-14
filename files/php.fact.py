@@ -3,7 +3,7 @@ from pathlib import Path
 import json
 import subprocess
 
-class PHPFacts:           
+class PhpFacts:           
     def get_os_family(self) -> str:
         os_vars = {}
         with open("/etc/os-release", "r", encoding="utf-8") as os_release:
@@ -66,7 +66,7 @@ class PHPFacts:
 
 class Facts:
     def __str__(self):
-        return json.dumps(PHPFacts().generate_php_facts())
+        return json.dumps(PhpFacts().generate_php_facts())
 
 if __name__ == '__main__':
     print(Facts())
