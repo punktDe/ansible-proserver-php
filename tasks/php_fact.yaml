@@ -1,5 +1,6 @@
 ---
 - name: Update apt cache (Debian-based)
+  changed_when: no
   when: "ansible_os_family == 'Debian'"
   ansible.builtin.apt:
     update_cache: yes
