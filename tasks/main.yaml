@@ -1,10 +1,10 @@
 ---
+- name: Set the PHP facts
+  ansible.builtin.include_tasks: php_fact.yaml
+
 - name: Manage apt repo (Ubuntu/Debian)
   when: ansible_os_family == 'Debian'
   ansible.builtin.include_tasks: apt.yaml
-
-- name: Set the PHP facts
-  ansible.builtin.include_tasks: php_fact.yaml
 
 - name: Install PHP and extensions (Ubuntu/Debian)
   when: ansible_os_family == 'Debian'

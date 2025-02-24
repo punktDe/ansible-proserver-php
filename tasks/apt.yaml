@@ -27,3 +27,9 @@
   changed_when: no
   ansible.builtin.apt:
     update_cache: yes
+
+- name: Reload facts
+  when: php_repository_added.changed
+  check_mode: no
+  changed_when: no
+  ansible.builtin.setup: {}
