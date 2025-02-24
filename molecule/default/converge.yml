@@ -10,6 +10,10 @@
         proserver_user: yes
     nginx:
       default_server: no
+    php:
+      repository:
+        apt:
+          enabled: yes
   tasks:
     - name: "Include ansible-proserver-php"
       ansible.builtin.include_role:

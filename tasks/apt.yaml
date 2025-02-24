@@ -9,7 +9,7 @@
   ansible.builtin.file:
     dest: /etc/apt/sources.list.d/php.list
     state: absent
-      
+
 - name: Ensure the third-party PHP repository is {{ 'present' if php.repository.apt.enabled else 'absent' }}
   register: php_repository_added
   ansible.builtin.deb822_repository:
