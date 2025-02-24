@@ -44,4 +44,4 @@ jobs:
           ansible-galaxy install -r requirements.yml
 
       - name: Run molecule
-        run: molecule test
+        run: molecule test --parallel
