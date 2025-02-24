@@ -1,5 +1,20 @@
 ---
 php:
+  repository:
+    apt:
+      enabled: no
+      repository: >-
+        {%- if ansible_distribution == 'Ubuntu' -%}
+          https://ppa.launchpadcontent.net/ondrej/php/ubuntu
+        {%- else -%}
+          https://packages.sury.org/php/
+        {%- endif -%}
+      key_url: >-
+        {%- if ansible_distribution == 'Ubuntu' -%}
+          https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xb8dc7e53946656efbce4c1dd71daeaab4ad4cab6
+        {%- else -%}
+          https://packages.sury.org/apt.gpg
+        {%- endif -%}
   version: "{{ ansible_local.php.version }}"
   prefix: "{{ ansible_local.php.prefix }}"
   xdebug:

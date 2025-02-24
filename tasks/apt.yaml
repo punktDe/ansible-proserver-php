@@ -1,0 +1,29 @@
+---
+- name: Install python3-debian package with apt
+  ansible.builtin.apt:
+    name: python3-debian
+    update_cache: yes
+
+- name: Remove the legacy apt repository
+  when: php.repository.apt.enabled
+  ansible.builtin.file:
+    dest: /etc/apt/sources.list.d/php.list
+    state: absent
+      
+- name: Ensure the third-party PHP repository is {{ 'present' if php.repository.apt.enabled else 'absent' }}
+  register: php_repository_added
+  ansible.builtin.deb822_repository:
+    name: php
+    uris: "{{ php.repository.apt.repository }}"
+    signed_by: "{{ php.repository.apt.key_url }}"
+    types: [deb]
+    components: [main]
+    suites: "{{ ansible_distribution_release }}"
+    state: "{{ 'present' if php.repository.apt.enabled else 'absent' }}"
+    enabled: "{{ php.repository.apt.enabled }}"
+
+- name: Update apt cache (Debian-based)
+  when: php_repository_added.changed
+  changed_when: no
+  ansible.builtin.apt:
+    update_cache: yes
