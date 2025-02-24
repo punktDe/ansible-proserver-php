@@ -4,6 +4,8 @@ dependencies:
     when: (lookup('env','GITHUB_ACTIONS') | length) != 0
   - role: nginx
     when: (lookup('env','GITHUB_ACTIONS') | length) != 0
+  - role: dehydrated
+    when: (lookup('env','GITHUB_ACTIONS') | length) != 0
 
 galaxy_info:
   author: "Punkt.de"
