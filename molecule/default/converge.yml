@@ -1,6 +1,15 @@
 ---
 - name: Converge
   hosts: all
+  environment:
+    GITHUB_ACTIONS: "maybe"
+    ANSIBLE_HASH_BEHAVIOUR: merge
+  vars:
+    system:
+      features:
+        proserver_user: yes
+    nginx:
+      default_server: no
   tasks:
     - name: "Include ansible-proserver-php"
       ansible.builtin.include_role:

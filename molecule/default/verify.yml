@@ -1,10 +1,51 @@
 ---
-# This is an example playbook to execute Ansible tests.
-
 - name: Verify
   hosts: all
-  gather_facts: false
   tasks:
-    - name: Example assertion
-      ansible.builtin.assert:
-        that: true
+    - name: Create the current_release folder
+      ansible.builtin.file:
+        dest: "{{ item }}"
+        state: directory
+        owner: proserver
+        mode: "0755"
+      loop:
+        - /var/www
+        - /var/www/current
+
+    - name: Template the example Nginx config
+      ansible.builtin.template:
+        owner: root
+        mode: "0644"
+        src: nginx/http.d/app.conf
+        dest: "/etc/nginx/http.d/app.conf"
+
+    - name: Reload Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+
+    - name: Copy the example PHP script
+      ansible.builtin.copy:
+        owner: proserver
+        mode: "0777"
+        src: "index.php"
+        dest: "/var/www/current/index.php"
+
+    - name: Test PHP-FPM
+      block:
+        - name: Check that a page returns successfully but fail if 'Hello PHP {{ ansible_local.php.version }}!' is not in the page contents
+          ansible.builtin.uri:
+            url: http://localhost
+            return_content: true
+          register: this
+          failed_when: this is failed or ('Hello PHP ' + ansible_local.php.version) not in this.content
+      rescue:
+        - name: Get nginx error log
+          register: nginx_log
+          changed_when: no
+          ansible.builtin.command:
+            cmd: tail -n 10 /var/log/nginx/error.log
+
+        - name: Display the log output
+          ansible.builtin.fail:
+            msg: "{{ nginx_log.stdout }}"
