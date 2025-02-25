@@ -11,6 +11,7 @@
     state: absent
 
 - name: Ensure the third-party PHP repository is {{ 'present' if php.repository.apt.enabled else 'absent' }}
+  changed_when: "'molecule-idempotence-notest' not in ansible_skip_tags"
   register: php_repository_added
   ansible.builtin.deb822_repository:
     name: php
