@@ -3,13 +3,30 @@
   ansible.builtin.user:
     name: proserver
 
-- name: Install PHP and extensions
+- name: Install PHP {{ php.version }} and extensions
   notify: Restart PHP-FPM
   ansible.builtin.apt:
     name: >-
       {{
-        ['php-fpm'] + php.install_extensions.items() |
+        ['php' + (php.version if php.repository.apt.enabled else '') + '-fpm'] + php.install_extensions.items() |
         selectattr('1', 'eq', true)|map(attribute='0') |
-        map('regex_replace', '^', 'php-') |
+        map('regex_replace', '^', 'php' + (php.version if php.repository.apt.enabled else '') + '-') |
         list + (['composer'] if php.install_composer else [])
       }}
+
+- name: List all packages belonging to other PHP versions
+  changed_when: no
+  check_mode: no
+  register: previous_php_packages
+  failed_when: previous_php_packages.failed and previous_php_packages.stderr != ""
+  ansible.builtin.shell:
+    cmd: |
+      dpkg -l php\* | awk '/^[hi]i/{print $2}' | grep "php[0-9]\\.[0-9]" | grep -v {{ php.version }}
+
+- name: Ensure all non-{{ php.version }} PHP packages are uninstalled
+  when: previous_php_packages.stdout != ""
+  ansible.builtin.apt:
+    package: "{{ previous_php_packages.stdout_lines }}"
+    state: absent
+    update_cache: yes
+    autoremove: yes

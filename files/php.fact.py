@@ -31,11 +31,12 @@ class PhpFacts:
     def get_php_version(self) -> str:
         os_family = self.get_os_family()
         if os_family == "debian":
-            command='apt-cache search --names-only "^php[0-9].[0-9]$" | grep -o "[0-9]\\.[0-9]"'
+            command='apt-cache search --names-only "^php[0-9].[0-9]$" | grep -o "[0-9]\\.[0-9]" | sort -V | tail -n 1'
         else:
             command="php -r 'echo phpversion();' | grep -o '[0-9]\\.[0-9]' | head -n1"
         command_output = subprocess.run(command, shell=True, capture_output=True)
-        if len(command_output.stdout) > 0:
+        clean_output = command_output.stdout.decode().strip()
+        if re.match(r"[0-9]+\.[0-9]", clean_output):
             return command_output.stdout.decode().strip()
         else:
             raise OSError(f"Error detecting the PHP version: command_output.stderr.decode()")

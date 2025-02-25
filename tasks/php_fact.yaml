@@ -28,6 +28,5 @@
 
 - name: Reload facts
   check_mode: no
-  when: php_template_fact_result.changed
-  changed_when: yes
+  changed_when: no
   ansible.builtin.setup: {}
