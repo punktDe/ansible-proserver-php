@@ -3,7 +3,7 @@
   ansible.builtin.user:
     name: proserver
 
-- name: Install PHP and extensions
+- name: Install PHP {{ php.version }} and extensions
   notify: Restart PHP-FPM
   ansible.builtin.apt:
     name: >-
