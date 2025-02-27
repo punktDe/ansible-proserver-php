@@ -15,6 +15,14 @@
         apt:
           enabled: yes
   tasks:
+    - name: Include ansible-proserver-system
+      ansible.builtin.include_role:
+        name: system
+
+    - name: Include ansible-proserver-nginx
+      ansible.builtin.include_role:
+        name: nginx
+
     - name: "Include ansible-proserver-php"
       ansible.builtin.include_role:
         name: "ansible-proserver-php"
