@@ -1,8 +1,9 @@
 ---
 galaxy_info:
   author: "Punkt.de"
-  license: ""
+  license: "MIT"
   description: "Ansible role for PHP"
-  role_name: "proserver_php"
+  role_name: "php"
   namespace: "punktde"
   min_ansible_version: "2.15"
+  platforms: []
