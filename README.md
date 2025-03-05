@@ -1,0 +1,93 @@
+<!-- BEGIN_ANSIBLE_DOCS -->
+# ansible-proserver-php
+
+Ansible role for PHP
+
+## Supported Operating Systems
+
+- Debian 12
+- Ubuntu 24.04, 22.04
+- FreeBSD [Proserver](https://infrastructure.punkt.de/de/produkte/proserver.html)
+
+## Role Arguments
+
+
+
+Default variables that begin with `ansible_local` are populated using the PHP fact script (files/php.fact.py).
+
+This scripts detects many PHP-related variables automatically depending on the system (e.g. PHP version, PHP-FPM service name, configuration, directories).
+
+The fact script is copied to the target machine at the beginning of the role execution, even in `check_mode`.
+
+Apart from `php.version` (on a Debian-based system), you probably shouldn't change the variables starting with `ansible_local`, unless you know what you're doing.
+
+#### Options for `php`
+
+|Option|Description|Type|Required|Default|
+|---|---|---|---|---|
+| `repository` | Configuration options for an optional 3rd party APT repository used to install alternative PHP versions (only applies for Debian-based systems) | dict of 'repository' options | yes |  |
+| `version` | PHP version to be installed (in case of Debian-based systems) and configured on the target machine. On FreeBSD Proserver-based systems, PHP is already pre-installed. The PHP version depends on the system Blueprint and is extracted automatically from the output of `php -v`. Hence, setting this variable is not required. On Debian-based systems, this variable defaults to the newest possible version that can be installed using the APT package manager. Provided you've enabled the 3rd party APT repository using `php.repository.apt.enabled`, you can set this variable to the desired version of PHP, as long as it's actually available in the repositories. This can be checked by using `apt search --names-only php`. | str | no | {{ ansible_local.php.version }} |
+| `prefix` | Directories for PHP configuration files (e.g. php.ini). Defaults to `config: "/etc/php/{{ php.version }}/cli"` on Linux and `config: "/usr/local/etc"` on FreeBSD. Most of the time, you probably don't need to change this variable. | dict | no | "{{ ansible_local.php.prefix }}" |
+| `php.ini` | Defines config options to be written into php.ini. The options are defined as key-value pairs in a YAML dictionary, e.g. `memory_limit: 2G` or `upload_max_filesize: 500M` | dict | no |  |
+| `fpm` | PHP-FPM configuration | dict of 'fpm' options | yes |  |
+| `phpfpmtop` | Options for phpfpmtop, a performance monitor for PHP-FPM. | dict of 'phpfpmtop' options | no |  |
+| `install_extensions` | Defines PHP extensions to be installed on the target machine in the `{'extension_name': true}` format, e.g. `{'pdo-mysql': true, 'mbstring': true}`. Only applies to Debian-based targets. | dict | no |  |
+| `install_composer` | Whether to install [Composer](https://getcomposer.org) on the target machine. Only applies to Debian-based targets. | bool | no | False |
+
+#### Options for `php.repository`
+
+|Option|Description|Type|Required|Default|
+|---|---|---|---|---|
+| `apt` |  | dict of 'apt' options | yes |  |
+
+#### Options for `php.repository.apt`
+
+|Option|Description|Type|Required|Default|
+|---|---|---|---|---|
+| `enabled` | Whether the 3rd party APT repository should be installed and used | bool | no | False |
+| `key_url` | URL for the GPG key used to signed the APT repository | str | yes |  |
+| `repository` | URL for the APT repository | str | yes |  |
+
+#### Options for `php.fpm`
+
+|Option|Description|Type|Required|Default|
+|---|---|---|---|---|
+| `service` | PHP-FPM service name | str | no | {{ ansible_local.php.fpm.service }} |
+| `prefix` | Path to PHP-FPM configuration files. Contains "config" and "pool_config" parameters, which default to `/usr/local/etc and /usr/local/etc/php-fpm.d` on FreeBSD, and `/etc/php/{{ php.version }}/fpm` and `/etc/php/{{ php.version }}/fpm/pool.d` on Linux respectively. | str | no | {{ ansible_local.php.fpm.prefix }} |
+| `pools` | Defines PHP-FPM pools. By default, only `www` pool is defined which runs under user `proserver:proserver` | dict | no | {"www": {"user": "proserver", "group": "proserver", "listen.owner": "proserver", "listen.group": "{{ ansible_local.php.fpm.pools.www['listen.group'] }}", "listen": "{{ ansible_local.php.fpm.pools.www.listen }}"}} |
+
+#### Options for `php.phpfpmtop`
+
+|Option|Description|Type|Required|Default|
+|---|---|---|---|---|
+| `release` |  | dict of 'release' options | no |  |
+
+#### Options for `php.phpfpmtop.release`
+
+|Option|Description|Type|Required|Default|
+|---|---|---|---|---|
+| `url` | URL to the phpfpmtop binary. | str | no |  |
+| `checksum` | SHA256 checksum of the phpfpmtop binary. | str | no |  |
+
+## Dependencies
+None.
+
+## Installation
+Add this role to the requirements.yml of your playbook as follows:
+```yaml
+roles:
+  - name: php
+    src: https://github.com/punktDe/ansible-proserver-php
+```
+
+Afterwards, install the role by running `ansible-galaxy install -r requirements.yml`
+
+## Example Playbook
+
+```yaml
+- hosts: all
+  roles:
+    - name: php
+```
+
+<!-- END_ANSIBLE_DOCS -->
