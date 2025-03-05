@@ -15,19 +15,19 @@ php:
         {%- else -%}
           https://packages.sury.org/apt.gpg
         {%- endif -%}
-  version: "{{ ansible_local.php.version }}"
-  prefix: "{{ ansible_local.php.prefix }}"
+  version: "{{ ansible_local.php.version | default('') }}"
+  prefix: "{{ ansible_local.php.prefix | default({}) }}"
   php.ini: {}
   fpm:
-    service: "{{ ansible_local.php.fpm.service }}"
-    prefix: "{{ ansible_local.php.fpm.prefix }}"
+    service: "{{ ansible_local.php.fpm.service | default('') }}"
+    prefix: "{{ ansible_local.php.fpm.prefix | default({}) }}"
     pools:
       www:
         user: proserver
         group: proserver
         listen.owner: proserver
-        listen.group: "{{ ansible_local.php.fpm.pools.www['listen.group'] }}"
-        listen: "{{ ansible_local.php.fpm.pools.www.listen }}"
+        listen.group: "{{ ansible_local.php.fpm.pools.www['listen.group'] | default('') }}"
+        listen: "{{ ansible_local.php.fpm.pools.www.listen | default({}) }}"
   phpfpmtop:
     release:
       url: >-
