@@ -13,7 +13,7 @@ php:
         {%- if ansible_distribution == 'Ubuntu' -%}
           https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xb8dc7e53946656efbce4c1dd71daeaab4ad4cab6
         {%- else -%}
-          https://packages.sury.org/apt.gpg
+          https://packages.sury.org/php/apt.gpg
         {%- endif -%}
   version: "{{ ansible_local.php.version | default('') }}"
   prefix: "{{ ansible_local.php.prefix | default({}) }}"
