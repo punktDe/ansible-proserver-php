@@ -22,8 +22,8 @@ argument_specs:
             type: "dict"
             required: true
             description:
-              - Configuration options for an optional 3rd party APT repository used to install
-                alternative PHP versions (only applies for Debian-based systems)
+              - Configuration for an optional 3rd party APT repository used to install
+                alternative PHP versions (Debian-based only)
             options:
               apt:
                 type: "dict"
@@ -48,16 +48,13 @@ argument_specs:
             type: str
             default: "{{ ansible_local.php.version | default('') }}"
             description:
-              - PHP version to be installed (in case of Debian-based systems) and configured
-                on the target machine.
-              - On FreeBSD Proserver-based systems, PHP is already pre-installed. The PHP version
-                depends on the system Blueprint and is extracted automatically from the output
-                of `php -v`. Hence, setting this variable is not required.
-              - On Debian-based systems, this variable defaults to the newest possible version that
-                can be installed using the APT package manager. Provided you've enabled the 3rd party
-                APT repository using `php.repository.apt.enabled`, you can set this variable to the
-                desired version of PHP, as long as it's actually available in the repositories.
-                This can be checked by using `apt search --names-only php`.
+              - PHP version to install on the target machine. Only applies to Debian-based systems.
+              - On FreeBSD Proserver-based systems, PHP is pre-installed based on the system Blueprint
+                and detected automatically; no manual setting needed.
+              - On Debian-based systems, this option defaults to the latest version available from your system's repositories
+              - However, if `php.repository.apt.enabled` is set to true, this can be set to any
+                version of PHP available in the third-party repo.
+              - To check which versions of PHP are available on your system, run `apt search --names-only php`
           prefix:
             type: dict
             default: "{{ ansible_local.php.prefix | default({}) }}"
