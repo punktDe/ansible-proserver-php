@@ -13,27 +13,21 @@ php:
         {%- if ansible_distribution == 'Ubuntu' -%}
           https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xb8dc7e53946656efbce4c1dd71daeaab4ad4cab6
         {%- else -%}
-          https://packages.sury.org/apt.gpg
+          https://packages.sury.org/php/apt.gpg
         {%- endif -%}
-  version: "{{ ansible_local.php.version }}"
-  prefix: "{{ ansible_local.php.prefix }}"
-  xdebug:
-    # Xdebug is not installed in a real proServer environment.
-    # This option is only useful in a development environment.
-    # If enabled, Ansible will disable Xdebug and provide the command "xdebug",
-    # which can be used to enable/disable Xdebug when desired.
-    disable_by_default: no
+  version: "{{ ansible_local.php.version | default('') }}"
+  prefix: "{{ ansible_local.php.prefix | default({}) }}"
   php.ini: {}
   fpm:
-    service: "{{ ansible_local.php.fpm.service }}"
-    prefix: "{{ ansible_local.php.fpm.prefix }}"
+    service: "{{ ansible_local.php.fpm.service | default('') }}"
+    prefix: "{{ ansible_local.php.fpm.prefix | default({}) }}"
     pools:
       www:
         user: proserver
         group: proserver
         listen.owner: proserver
-        listen.group: "{{ ansible_local.php.fpm.pools.www['listen.group'] }}"
-        listen: "{{ ansible_local.php.fpm.pools.www.listen }}"
+        listen.group: "{{ ansible_local.php.fpm.pools.www['listen.group'] | default('') }}"
+        listen: "{{ ansible_local.php.fpm.pools.www.listen | default({}) }}"
   phpfpmtop:
     release:
       url: >-

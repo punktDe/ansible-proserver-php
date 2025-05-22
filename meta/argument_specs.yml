@@ -1,0 +1,137 @@
+---
+argument_specs:
+  main:
+    short_description: Main entry point for the PHP role
+    description:
+      - Default variables that begin with `ansible_local` are populated
+        using the PHP fact script (files/php.fact.py).
+      - This scripts detects many PHP-related variables automatically
+        depending on the system (e.g. PHP version, PHP-FPM service name,
+        configuration, directories).
+      - The fact script is copied to the target machine at the beginning
+        of the role execution, even in `check_mode`.
+      - Apart from `php.version` (on a Debian-based system), you probably
+        shouldn't change the variables starting with `ansible_local`,
+        unless you know what you're doing.
+    options:
+      php:
+        type: "dict"
+        required: true
+        options:
+          repository:
+            type: "dict"
+            required: true
+            description:
+              - Configuration for an optional 3rd party APT repository used to install
+                alternative PHP versions (Debian-based only)
+            options:
+              apt:
+                type: "dict"
+                required: true
+                options:
+                  enabled:
+                    type: "bool"
+                    default: false
+                    description:
+                      - Whether the 3rd party APT repository should be installed and used
+                  key_url:
+                    type: "str"
+                    required: true
+                    description:
+                      - URL for the GPG key used to signed the APT repository
+                  repository:
+                    type: "str"
+                    required: true
+                    description:
+                      - URL for the APT repository
+          version:
+            type: str
+            default: "{{ ansible_local.php.version | default('') }}"
+            description:
+              - PHP version to install on the target machine. Only applies to Debian-based systems.
+              - On FreeBSD Proserver-based systems, PHP is pre-installed based on the system Blueprint
+                and detected automatically; no manual setting needed.
+              - On Debian-based systems, this option defaults to the latest version available from your system's repositories
+              - However, if `php.repository.apt.enabled` is set to true, this can be set to any
+                version of PHP available in the third-party repo.
+              - To check which versions of PHP are available on your system, run `apt search --names-only php`
+          prefix:
+            type: dict
+            default: "{{ ansible_local.php.prefix | default({}) }}"
+            description:
+              - Directories for PHP configuration files (e.g. php.ini).
+              - "Defaults to `config: \"/etc/php/{{ php.version }}/cli\"` on Linux
+                and `config: \"/usr/local/etc\"` on FreeBSD."
+              - Most of the time, you probably don't need to change this variable.
+          php.ini:
+            type: dict
+            default: {}
+            description:
+              - Defines config options to be written into php.ini.
+              - "The options are defined as key-value pairs in a YAML dictionary,
+                e.g. `memory_limit: 2G` or `upload_max_filesize: 500M`"
+          fpm:
+            type: dict
+            required: true
+            description:
+              - PHP-FPM configuration
+            options:
+              service:
+                type: str
+                default: "{{ ansible_local.php.fpm.service | default('') }}"
+                description:
+                  - PHP-FPM service name
+              prefix:
+                type: str
+                default: "{{ ansible_local.php.fpm.prefix | default({}) }}"
+                description:
+                  - Path to PHP-FPM configuration files.
+                  - Contains "config" and "pool_config" parameters,
+                    which default to `/usr/local/etc and /usr/local/etc/php-fpm.d` on
+                    FreeBSD, and `/etc/php/{{ php.version }}/fpm` and
+                    `/etc/php/{{ php.version }}/fpm/pool.d` on Linux respectively.
+              pools:
+                type: dict
+                default:
+                  www:
+                    user: proserver
+                    group: proserver
+                    listen.owner: proserver
+                    listen.group: "{{ ansible_local.php.fpm.pools.www['listen.group'] | default('') }}"
+                    listen: "{{ ansible_local.php.fpm.pools.www.listen | default({}) }}"
+                description:
+                  - Defines PHP-FPM pools.
+                  - By default, only `www` pool is defined which runs
+                    under user `proserver:proserver`
+          phpfpmtop:
+            type: dict
+            description:
+              - Options for phpfpmtop, a performance monitor
+                for PHP-FPM.
+            options:
+              release:
+                type: dict
+                options:
+                  url:
+                    type: str
+                    description:
+                      - URL to the phpfpmtop binary.
+                  checksum:
+                    type: str
+                    description:
+                      - SHA256 checksum of the phpfpmtop binary.
+          install_extensions:
+            type: dict
+            default: {}
+            description:
+              - "Defines PHP extensions to be installed on the target machine
+                in the `{'extension_name': true}` format,
+                e.g. `{'pdo-mysql': true, 'mbstring': true}`."
+              - Only applies to Debian-based targets.
+          install_composer:
+            type: bool
+            default: false
+            description:
+              - Whether to install [Composer](https://getcomposer.org) on
+                the target machine.
+              - Only applies to Debian-based targets.
