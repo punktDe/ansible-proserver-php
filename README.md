@@ -26,8 +26,8 @@ Apart from `php.version` (on a Debian-based system), you probably shouldn't chan
 |Option|Description|Type|Required|Default|
 |---|---|---|---|---|
 | `repository` | Configuration options for an optional 3rd party APT repository used to install alternative PHP versions (only applies for Debian-based systems) | dict of 'repository' options | yes |  |
-| `version` | PHP version to be installed (in case of Debian-based systems) and configured on the target machine. On FreeBSD Proserver-based systems, PHP is already pre-installed. The PHP version depends on the system Blueprint and is extracted automatically from the output of `php -v`. Hence, setting this variable is not required. On Debian-based systems, this variable defaults to the newest possible version that can be installed using the APT package manager. Provided you've enabled the 3rd party APT repository using `php.repository.apt.enabled`, you can set this variable to the desired version of PHP, as long as it's actually available in the repositories. This can be checked by using `apt search --names-only php`. | str | no | {{ ansible_local.php.version }} |
-| `prefix` | Directories for PHP configuration files (e.g. php.ini). Defaults to `config: "/etc/php/{{ php.version }}/cli"` on Linux and `config: "/usr/local/etc"` on FreeBSD. Most of the time, you probably don't need to change this variable. | dict | no | "{{ ansible_local.php.prefix }}" |
+| `version` | PHP version to be installed (in case of Debian-based systems) and configured on the target machine. On FreeBSD Proserver-based systems, PHP is already pre-installed. The PHP version depends on the system Blueprint and is extracted automatically from the output of `php -v`. Hence, setting this variable is not required. On Debian-based systems, this variable defaults to the newest possible version that can be installed using the APT package manager. Provided you've enabled the 3rd party APT repository using `php.repository.apt.enabled`, you can set this variable to the desired version of PHP, as long as it's actually available in the repositories. This can be checked by using `apt search --names-only php`. | str | no | {{ ansible_local.php.version | default('') }} |
+| `prefix` | Directories for PHP configuration files (e.g. php.ini). Defaults to `config: "/etc/php/{{ php.version }}/cli"` on Linux and `config: "/usr/local/etc"` on FreeBSD. Most of the time, you probably don't need to change this variable. | dict | no | "{{ ansible_local.php.prefix | default({}) }}" |
 | `php.ini` | Defines config options to be written into php.ini. The options are defined as key-value pairs in a YAML dictionary, e.g. `memory_limit: 2G` or `upload_max_filesize: 500M` | dict | no |  |
 | `fpm` | PHP-FPM configuration | dict of 'fpm' options | yes |  |
 | `phpfpmtop` | Options for phpfpmtop, a performance monitor for PHP-FPM. | dict of 'phpfpmtop' options | no |  |
@@ -52,9 +52,9 @@ Apart from `php.version` (on a Debian-based system), you probably shouldn't chan
 
 |Option|Description|Type|Required|Default|
 |---|---|---|---|---|
-| `service` | PHP-FPM service name | str | no | {{ ansible_local.php.fpm.service }} |
-| `prefix` | Path to PHP-FPM configuration files. Contains "config" and "pool_config" parameters, which default to `/usr/local/etc and /usr/local/etc/php-fpm.d` on FreeBSD, and `/etc/php/{{ php.version }}/fpm` and `/etc/php/{{ php.version }}/fpm/pool.d` on Linux respectively. | str | no | {{ ansible_local.php.fpm.prefix }} |
-| `pools` | Defines PHP-FPM pools. By default, only `www` pool is defined which runs under user `proserver:proserver` | dict | no | {"www": {"user": "proserver", "group": "proserver", "listen.owner": "proserver", "listen.group": "{{ ansible_local.php.fpm.pools.www['listen.group'] }}", "listen": "{{ ansible_local.php.fpm.pools.www.listen }}"}} |
+| `service` | PHP-FPM service name | str | no | {{ ansible_local.php.fpm.service | default('') }} |
+| `prefix` | Path to PHP-FPM configuration files. Contains "config" and "pool_config" parameters, which default to `/usr/local/etc and /usr/local/etc/php-fpm.d` on FreeBSD, and `/etc/php/{{ php.version }}/fpm` and `/etc/php/{{ php.version }}/fpm/pool.d` on Linux respectively. | str | no | {{ ansible_local.php.fpm.prefix | default({}) }} |
+| `pools` | Defines PHP-FPM pools. By default, only `www` pool is defined which runs under user `proserver:proserver` | dict | no | {"www": {"user": "proserver", "group": "proserver", "listen.owner": "proserver", "listen.group": "{{ ansible_local.php.fpm.pools.www['listen.group'] | default('') }}", "listen": "{{ ansible_local.php.fpm.pools.www.listen | default({}) }}"}} |
 
 #### Options for `php.phpfpmtop`
 
