@@ -46,7 +46,7 @@ argument_specs:
                       - URL for the APT repository
           version:
             type: str
-            default: "{{ ansible_local.php.version }}"
+            default: "{{ ansible_local.php.version | default('') }}"
             description:
               - PHP version to be installed (in case of Debian-based systems) and configured
                 on the target machine.
@@ -60,7 +60,7 @@ argument_specs:
                 This can be checked by using `apt search --names-only php`.
           prefix:
             type: dict
-            default: "{{ ansible_local.php.prefix }}"
+            default: "{{ ansible_local.php.prefix | default({}) }}"
             description:
               - Directories for PHP configuration files (e.g. php.ini).
               - "Defaults to `config: \"/etc/php/{{ php.version }}/cli\"` on Linux
@@ -81,12 +81,12 @@ argument_specs:
             options:
               service:
                 type: str
-                default: "{{ ansible_local.php.fpm.service }}"
+                default: "{{ ansible_local.php.fpm.service | default('') }}"
                 description:
                   - PHP-FPM service name
               prefix:
                 type: str
-                default: "{{ ansible_local.php.fpm.prefix }}"
+                default: "{{ ansible_local.php.fpm.prefix | default({}) }}"
                 description:
                   - Path to PHP-FPM configuration files.
                   - Contains "config" and "pool_config" parameters,
@@ -100,8 +100,8 @@ argument_specs:
                     user: proserver
                     group: proserver
                     listen.owner: proserver
-                    listen.group: "{{ ansible_local.php.fpm.pools.www['listen.group'] }}"
-                    listen: "{{ ansible_local.php.fpm.pools.www.listen }}"
+                    listen.group: "{{ ansible_local.php.fpm.pools.www['listen.group'] | default('') }}"
+                    listen: "{{ ansible_local.php.fpm.pools.www.listen | default({}) }}"
                 description:
                   - Defines PHP-FPM pools.
                   - By default, only `www` pool is defined which runs
