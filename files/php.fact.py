@@ -29,7 +29,7 @@ class PhpFacts:
             raise OSError(f"Unsupported OS family: {os_family}")
 
     def get_php_version(self) -> str:
-        command="php -r 'echo PHP_MAJOR_VERSION.\".\".PHP_MINOR_VERSION;'"
+        command="php -r 'echo PHP_MAJOR_VERSION.\".\".PHP_MINOR_VERSION;' | grep -o '[0-9]\\.[0-9]' | head -n1"
         command_output = subprocess.run(command, shell=True, capture_output=True)
         clean_output = command_output.stdout.decode().strip()
         if re.match(r"[0-9]+\.[0-9]", clean_output):
