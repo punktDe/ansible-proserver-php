@@ -30,3 +30,9 @@
     state: absent
     update_cache: yes
     autoremove: yes
+
+- name: Reload facts after PHP installation
+  when: php_repository_added.changed
+  check_mode: no
+  changed_when: no
+  ansible.builtin.setup: {}
