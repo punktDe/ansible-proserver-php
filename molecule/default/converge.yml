@@ -11,6 +11,7 @@
     nginx:
       default_server: no
     php:
+      version: 8.1
       repository:
         apt:
           enabled: yes
