@@ -135,3 +135,32 @@ argument_specs:
               - Whether to install [Composer](https://getcomposer.org) on
                 the target machine.
               - Only applies to Debian-based targets.
+          scandir:
+            type: dict
+            description: Options for disabling php-modules
+
+            php_ini_scan_dir_default:
+              description: Default path for PHP module configuration files
+              default: "/usr/local/etc/php"
+              type: string
+
+
+            php_ini_scan_dir_cli:
+              description: Cli path for PHP module configuration files
+              default: "/usr/local/etc/php-cli"
+              type: string
+
+            php_modules_disable:
+              type: list
+              description: List of modules to disable (module base names without extension)
+              default: []
+
+            php_cli_modules_disable:
+              description: List of users for whom to overwrite PHP_INI_SCAN_DIR for CLI within profile
+              type: list
+              default: []
+
+            overwrite_scandir_for_cli_user:
+              type: list
+              default: []
+              description: List of users for whom to overwrite PHP_INI_SCAN_DIR for CLI within profile
