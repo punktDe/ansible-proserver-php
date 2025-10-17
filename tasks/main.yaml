@@ -21,3 +21,4 @@
 
 - name: Disable php-modules
   ansible.builtin.include_tasks: disable_modules.yaml
+  when: php.scandir.disable_modules is defined or php.scandir.php_cli_modules_disable is defined

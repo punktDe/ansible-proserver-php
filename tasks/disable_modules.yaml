@@ -1,7 +1,7 @@
 ---
 - name: Ensure PHP CLI modules directory exists
   ansible.builtin.file:
-    path: "{{ php.php_ini_scan_dir_cli }}"
+    path: "{{ php.scandir.php_ini_scan_dir_cli }}"
     state: directory
     owner: root
     mode: "0755"
@@ -9,36 +9,36 @@
 
 - name: Find all default scan dir files
   ansible.builtin.find:
-    paths: "{{ php.php_ini_scan_dir_default }}"
+    paths: "{{ php.scandir.php_ini_scan_dir_default }}"
     patterns: "*.ini"
     file_type: file
   register: php_default_scan_dir_files_list
   when: php_cli_scan_dir_copied is changed
 
-- debug: msg="{{php_default_scan_dir_files_list.files}}"
-
 - name: Copy all default scan dir files to CLI scan dir (only on first creation)
   ansible.builtin.copy:
     src: "{{ item.path }}"
-    dest: "{{ php.php_ini_scan_dir_cli }}/{{ item.path | basename }}"
+    dest: "{{ php.scandir.php_ini_scan_dir_cli }}/{{ item.path | basename }}"
     owner: root
     mode: "0644"
     remote_src: true
-  #when: php_default_scan_dir_files_list is defined
-  loop:
-    - "{{ php_default_scan_dir_files_list.files }}"
+  when: php_default_scan_dir_files_list is defined and php_default_scan_dir_files_list.files is defined
+  loop: "{{ php_default_scan_dir_files_list.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+
 
 - name: Check non-CLI module ini files
   ansible.builtin.stat:
-    path: "{{ php.php_ini_scan_dir_default }}/{{ item.key }}.ini"
+    path: "{{ php.scandir.php_ini_scan_dir_default }}/{{ item.key }}.ini"
   register: non_cli_stats
-  loop: "{{ php.php_modules_disable | default([], true) }}"
+  loop: "{{ php.scandir.php_modules_disable | default([], true) }}"
   loop_control:
     label: "{{ item.key }}"
 
 - name: Disable non-CLI PHP modules by renaming to .ini.off
   ansible.builtin.command:
-    argv: ["/bin/mv", "{{ php.php_ini_scan_dir_default }}/{{ item.item.key }}.ini", "{{ php.php_ini_scan_dir_default }}/{{ item.item.key }}.ini.off"]
+    argv: ["/bin/mv", "{{ php.scandir.php_ini_scan_dir_default }}/{{ item.item.key }}.ini", "{{ php.scandir.php_ini_scan_dir_default }}/{{ item.item.key }}.ini.off"]
   loop: "{{ non_cli_stats.results | default([]) }}"
   loop_control:
     label: "{{ item.item.key }}"
@@ -46,30 +46,21 @@
 
 - name: Check CLI module ini files
   ansible.builtin.stat:
-    path: "{{ php.php_ini_scan_dir_cli }}/{{ (item.key | default(item)) }}.ini"
+    path: "{{ php.scandir.php_ini_scan_dir_cli }}/{{ (item.key | default(item)) }}.ini"
   register: cli_stats
   vars:
-    cli_items: "{{ php.php_cli_modules_disable | default([], true) }}"
+    cli_items: "{{ php.scandir.php_cli_modules_disable | default([], true) }}"
   loop: "{{ cli_items }}"
   loop_control:
     label: "{{ (item.key | default(item)) }}"
 
 - name: Disable CLI PHP modules by renaming to .ini.off
   ansible.builtin.command:
-    argv: ["/bin/mv", "{{ php.php_ini_scan_dir_cli }}/{{ (item.item.key | default(item.item)) }}.ini", "{{ php.php_ini_scan_dir_cli }}/{{ (item.item.key | default(item.item)) }}.ini.off"]
+    argv: ["/bin/mv", "{{ php.scandir.php_ini_scan_dir_cli }}/{{ (item.item.key | default(item.item)) }}.ini", "{{ php.scandir.php_ini_scan_dir_cli }}/{{ (item.item.key | default(item.item)) }}.ini.off"]
   loop: "{{ cli_stats.results | default([]) }}"
   loop_control:
     label: "{{ (item.item.key | default(item.item)) }}"
   when: item.stat.exists | default(false)
-
-- name: Lookup passwd entry for users to overwrite PHP_INI_SCAN_DIR
-  ansible.builtin.getent:
-    database: passwd
-    key: "{{ item }}"
-  loop: "{{ php.overwrite_scandir_for_cli_user }}"
-  register: php_overwrite_getent
-  loop_control:
-    label: "{{ item }}"
 
 - name: Set facts for home and rc files per user
   ansible.builtin.set_fact:
@@ -79,32 +70,35 @@
       - .shrc
       - .cshrc
       - .profile
-  loop: "{{ php.overwrite_scandir_for_cli_user }}"
+  loop: "{{ php.scandir.overwrite_scandir_for_cli_user }}"
   loop_control:
     label: "{{ item }}"
+  when: php.scandir.overwrite_scandir_for_cli_user is defined
 
 - name: Ensure PHP_INI_SCAN_DIR line exists in shell rc files (sh-compatible)
   ansible.builtin.lineinfile:
     path: "{{ getent_passwd[item.0][4] }}/{{ item.1 }}"
     create: true
-    line: "export PHP_INI_SCAN_DIR={{ php.php_ini_scan_dir_cli }}"
+    line: "export PHP_INI_SCAN_DIR={{ php.scandir.php_ini_scan_dir_cli }}"
     regexp: '^\s*(export\s+)?PHP_INI_SCAN_DIR='
     state: present
     mode: "0644"
     owner: "{{ item.0 }}"
-  loop: "{{ php.overwrite_scandir_for_cli_user | product(['.bashrc', '.shrc', '.profile']) | list }}"
+  loop: "{{ php.scandir.overwrite_scandir_for_cli_user | product(['.bashrc', '.shrc', '.profile']) | list }}"
   loop_control:
     label: "{{ item.0 }} -> {{ item.1 }}"
+  when: php.scandir.overwrite_scandir_for_cli_user is defined
 
 - name: Ensure PHP_INI_SCAN_DIR line exists in csh rc file
   ansible.builtin.lineinfile:
     path: "{{ getent_passwd[item][4] }}/.cshrc"
     create: true
-    line: "setenv PHP_INI_SCAN_DIR {{ php.php_ini_scan_dir_cli }}"
+    line: "setenv PHP_INI_SCAN_DIR {{ php.scandir.php_ini_scan_dir_cli }}"
     regexp: '^\s*setenv\s+PHP_INI_SCAN_DIR\s+'
     state: present
     mode: "0644"
     owner: "{{ item }}"
-  loop: "{{ php.overwrite_scandir_for_cli_user }}"
+  loop: "{{ php.scandir.overwrite_scandir_for_cli_user }}"
   loop_control:
     label: "{{ item }}"
+  when: php.scandir.overwrite_scandir_for_cli_user is defined
