@@ -26,7 +26,7 @@
   loop: "{{ php_default_scan_dir_files_list.files }}"
   loop_control:
     label: "{{ item.path }}"
-
+  ignore_errors: "{{ ansible_check_mode }}"
 
 - name: Check non-CLI module ini files
   ansible.builtin.stat:
