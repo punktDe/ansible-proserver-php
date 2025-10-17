@@ -33,7 +33,7 @@ Apart from `php.version` (on a Debian-based system), you probably shouldn't chan
 | `phpfpmtop` | Options for phpfpmtop, a performance monitor for PHP-FPM. | dict of 'phpfpmtop' options | no |  |
 | `install_extensions` | Defines PHP extensions to be installed on the target machine in the `{'extension_name': true}` format, e.g. `{'pdo-mysql': true, 'mbstring': true}`. Only applies to Debian-based targets. | dict | no |  |
 | `install_composer` | Whether to install [Composer](https://getcomposer.org) on the target machine. Only applies to Debian-based targets. | bool | no | False |
-| `scandir` | Options for disabling php-modules | dict | no |  |
+| `scandir` | Options for disabling php-modules | dict of 'scandir' options | yes |  |
 
 #### Options for `php.repository`
 
@@ -69,6 +69,16 @@ Apart from `php.version` (on a Debian-based system), you probably shouldn't chan
 |---|---|---|---|---|
 | `url` | URL to the phpfpmtop binary. | str | no |  |
 | `checksum` | SHA256 checksum of the phpfpmtop binary. | str | no |  |
+
+#### Options for `php.scandir`
+
+|Option|Description|Type|Required|Default|
+|---|---|---|---|---|
+| `php_ini_scan_dir_default` | Default path for PHP module configuration files | str | no | /usr/local/etc/php |
+| `php_ini_scan_dir_cli` | Cli path for PHP module configuration files | str | no | /usr/local/etc/php-cli |
+| `php_modules_disable` | List of modules to disable (module base names without extension) | list of '' | no | [] |
+| `php_cli_modules_disable` | List of users for whom to overwrite PHP_INI_SCAN_DIR for CLI within profile | list of '' | no | [] |
+| `overwrite_scandir_for_cli_user` | List of users for whom to overwrite PHP_INI_SCAN_DIR for CLI within profile | list of '' | no | [] |
 
 ## Dependencies
 None.
