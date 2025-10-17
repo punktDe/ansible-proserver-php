@@ -39,6 +39,7 @@
 - name: Disable non-CLI PHP modules by renaming to .ini.off
   ansible.builtin.command:
     argv: ["/bin/mv", "{{ php.scandir.php_ini_scan_dir_default }}/{{ item.item.key }}.ini", "{{ php.scandir.php_ini_scan_dir_default }}/{{ item.item.key }}.ini.off"]
+    creates: "{{ php.scandir.php_ini_scan_dir_default }}/{{ item.item.key }}.ini.off"
   loop: "{{ non_cli_stats.results | default([]) }}"
   loop_control:
     label: "{{ item.item.key }}"
@@ -56,24 +57,16 @@
 
 - name: Disable CLI PHP modules by renaming to .ini.off
   ansible.builtin.command:
+    creates: "{{ php.scandir.php_ini_scan_dir_cli }}/{{ (item.item.key | default(item.item)) }}.ini.off"
     argv: ["/bin/mv", "{{ php.scandir.php_ini_scan_dir_cli }}/{{ (item.item.key | default(item.item)) }}.ini", "{{ php.scandir.php_ini_scan_dir_cli }}/{{ (item.item.key | default(item.item)) }}.ini.off"]
   loop: "{{ cli_stats.results | default([]) }}"
   loop_control:
     label: "{{ (item.item.key | default(item.item)) }}"
   when: item.stat.exists | default(false)
 
-- name: Set facts for home and rc files per user
-  ansible.builtin.set_fact:
-    php_mod_user_home: "{{ getent_passwd[item][4] }}"
-    php_mod_rc_files:
-      - .bashrc
-      - .shrc
-      - .cshrc
-      - .profile
-  loop: "{{ php.scandir.overwrite_scandir_for_cli_user }}"
-  loop_control:
-    label: "{{ item }}"
-  when: php.scandir.overwrite_scandir_for_cli_user is defined
+- name: Init getent database
+  ansible.builtin.getent:
+    database: passwd
 
 - name: Ensure PHP_INI_SCAN_DIR line exists in shell rc files (sh-compatible)
   ansible.builtin.lineinfile:
