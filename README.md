@@ -33,6 +33,7 @@ Apart from `php.version` (on a Debian-based system), you probably shouldn't chan
 | `phpfpmtop` | Options for phpfpmtop, a performance monitor for PHP-FPM. | dict of 'phpfpmtop' options | no |  |
 | `install_extensions` | Defines PHP extensions to be installed on the target machine in the `{'extension_name': true}` format, e.g. `{'pdo-mysql': true, 'mbstring': true}`. Only applies to Debian-based targets. | dict | no |  |
 | `install_composer` | Whether to install [Composer](https://getcomposer.org) on the target machine. Only applies to Debian-based targets. | bool | no | False |
+| `scandir` | Options for disabling php-modules | dict | no |  |
 
 #### Options for `php.repository`
 
