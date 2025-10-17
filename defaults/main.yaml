@@ -44,3 +44,14 @@ php:
         {%- endif -%}
   install_extensions: {}
   install_composer: no
+  # Default paths for PHP module configuration files
+  php_ini_scan_dir_default: "/usr/local/etc/php"
+  php_ini_scan_dir_cli: "/usr/local/etc/php-cli"
+
+  # Dictionaries of modules to disable (keys are module base names without extension)
+  php_modules_disable:
+  php_cli_modules_disable:
+
+  # List of users for whom to overwrite PHP_INI_SCAN_DIR for CLI
+  overwrite_scandir_for_cli_user:
+    - proserver
