@@ -80,7 +80,7 @@
   loop: "{{ php.scandir.overwrite_scandir_for_cli_user | product(['.bashrc', '.shrc', '.profile']) | list }}"
   loop_control:
     label: "{{ item.0 }} -> {{ item.1 }}"
-  when: php.scandir.overwrite_scandir_for_cli_user is defined
+  when: php.scandir.overwrite_scandir_for_cli_user | length > 0
 
 - name: Ensure PHP_INI_SCAN_DIR line exists in csh rc file
   ansible.builtin.lineinfile:
@@ -94,4 +94,4 @@
   loop: "{{ php.scandir.overwrite_scandir_for_cli_user }}"
   loop_control:
     label: "{{ item }}"
-  when: php.scandir.overwrite_scandir_for_cli_user is defined
+  when: php.scandir.overwrite_scandir_for_cli_user | length > 0
