@@ -5,7 +5,7 @@ import re
 import json
 import subprocess
 
-class PhpFacts:           
+class PhpFacts:
     def get_os_family(self) -> str:
         if os.path.exists("/etc/os-release"):
             os_vars = {}
@@ -30,10 +30,11 @@ class PhpFacts:
 
     def get_php_version(self) -> str:
         os_family = self.get_os_family()
+        php_version_command = "php -r 'echo PHP_MAJOR_VERSION . \".\" . PHP_MINOR_VERSION;'"
         if os_family == "debian":
-            command='apt-cache search --names-only "^php[0-9].[0-9]$" | grep -o "[0-9]\\.[0-9]" | sort -V | tail -n 1'
+            command=f'{php_version_command} || apt-cache search --names-only "^php[0-9].[0-9]$" | grep -o "[0-9]\\.[0-9]" | sort -V | tail -n 1'
         else:
-            command="php -r 'echo phpversion();' | grep -o '[0-9]\\.[0-9]' | head -n1"
+            command=php_version_command
         command_output = subprocess.run(command, shell=True, capture_output=True)
         clean_output = command_output.stdout.decode().strip()
         if re.match(r"[0-9]+\.[0-9]", clean_output):
