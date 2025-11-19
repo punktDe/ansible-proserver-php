@@ -11,6 +11,14 @@
     nginx:
       default_server: no
     php:
+      modules:
+        disable:
+          for_users:
+            - root
+            - proserver
+          cli:
+            - exif
+            - tokenizer
       repository:
         apt:
           enabled: yes
