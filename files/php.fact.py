@@ -5,7 +5,7 @@ import re
 import json
 import subprocess
 
-class PhpFacts:           
+class PhpFacts:
     def get_os_family(self) -> str:
         if os.path.exists("/etc/os-release"):
             os_vars = {}
@@ -59,7 +59,10 @@ class PhpFacts:
         os_family = self.get_os_family()
         return {
                 'version': self.get_php_version(),
-                'prefix': {'config': "/usr/local/etc" if os_family == "freebsd" else f"/etc/php/{self.get_php_version()}/cli"},
+                'prefix': {
+                    'config': "/usr/local/etc" if os_family == "freebsd" else f"/etc/php/{self.get_php_version()}/cli",
+                    'modules': "/usr/local/etc/php" if os_family == "freebsd" else f"/etc/php/{self.get_php_version()}/cli/conf.d",
+                },
                 'fpm': {
                     'service': self.get_php_fpm_service(),
                     'prefix': {
