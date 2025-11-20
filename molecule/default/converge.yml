@@ -19,6 +19,7 @@
           cli:
             - exif
             - tokenizer
+      version: "8.1"
       repository:
         apt:
           enabled: yes
