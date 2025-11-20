@@ -1,97 +1,81 @@
 ---
-- name: Ensure PHP CLI modules directory exists
+- name: Ensure a CLI-specific module directory exists
   ansible.builtin.file:
-    path: "{{ php.scandir.php_ini_scan_dir_cli }}"
+    path: "{{ php.prefix.modules }}-cli"
     state: directory
     owner: root
     mode: "0755"
-  register: php_cli_scan_dir_copied
+  register: php_cli_modules_folder_created
 
-- name: Find all default scan dir files
+- name: List all default PHP modules
   ansible.builtin.find:
-    paths: "{{ php.scandir.php_ini_scan_dir_default }}"
+    paths: "{{ php.prefix.modules }}"
     patterns: "*.ini"
-    file_type: file
-  register: php_default_scan_dir_files_list
-  when: php_cli_scan_dir_copied is changed
+    file_type: "{{ 'link' if ansible_os_family == 'Debian' else 'file' }}"
+  register: php_default_modules_list
+  when: php_cli_modules_folder_created is changed
 
-- name: Copy all default scan dir files to CLI scan dir (only on first creation)
+- name: Copy all default modules to the CLI-specific modules directory
   ansible.builtin.copy:
     src: "{{ item.path }}"
-    dest: "{{ php.scandir.php_ini_scan_dir_cli }}/{{ item.path | basename }}"
+    dest: "{{ php.prefix.modules }}-cli/{{ item.path | basename }}"
     owner: root
     mode: "0644"
     remote_src: true
-  when: php_default_scan_dir_files_list is defined and php_default_scan_dir_files_list.files is defined
-  loop: "{{ php_default_scan_dir_files_list.files }}"
+  when: php_default_modules_list is defined and php_default_modules_list.files | length > 0
+  loop: "{{ php_default_modules_list.files }}"
   loop_control:
     label: "{{ item.path }}"
   ignore_errors: "{{ ansible_check_mode }}"
 
-- name: Check non-CLI module ini files
-  ansible.builtin.stat:
-    path: "{{ php.scandir.php_ini_scan_dir_default }}/{{ item.key }}.ini"
-  register: non_cli_stats
-  loop: "{{ php.scandir.php_modules_disable | default([], true) }}"
-  loop_control:
-    label: "{{ item.key }}"
+- name: Check module ini files for all SAPIs
+  when: php.modules.disable.all | length > 0
+  ansible.builtin.find:
+    patterns: "{{ php.modules.disable | map('regex_replace', '^', '[0-9]{2}-') | map('regex_replace', '$', '\\.ini(?!\\.off)') }}"
+    use_regex: yes
+    paths: "{{ php.prefix.modules }}"
+    file_type: "{{ 'link' if ansible_os_family == 'Debian' else 'file' }}"
+  register: all_sapi_stats
 
-- name: Disable non-CLI PHP modules by renaming to .ini.off
+- name: Check CLI-specific module ini files
+  when: php.modules.disable.cli | length > 0
+  ansible.builtin.find:
+    patterns: "{{ php.modules.disable.cli | map('regex_replace', '^', '[0-9]{2}-') | map('regex_replace', '$', '\\.ini(?!\\.off)') }}"
+    use_regex: yes
+    paths: "{{ php.prefix.modules }}-cli"
+    file_type: any
+  register: cli_specific_stats
+
+- name: Disable PHP modules by renaming to .ini.off
   ansible.builtin.command:
-    argv: ["/bin/mv", "{{ php.scandir.php_ini_scan_dir_default }}/{{ item.item.key }}.ini", "{{ php.scandir.php_ini_scan_dir_default }}/{{ item.item.key }}.ini.off"]
-    creates: "{{ php.scandir.php_ini_scan_dir_default }}/{{ item.item.key }}.ini.off"
-  loop: "{{ non_cli_stats.results | default([]) }}"
+    creates: "{{ item.path }}.off"
+    argv:
+      - "/bin/mv"
+      - "{{ item.path }}"
+      - "{{ item.path }}.off"
+  loop: "{{ ((all_sapi_stats | default({})).files | default([])) + ((cli_specific_stats | default({})).files | default([])) }}"
   loop_control:
-    label: "{{ item.item.key }}"
-  when: item.stat.exists | default(false)
-
-- name: Check CLI module ini files
-  ansible.builtin.stat:
-    path: "{{ php.scandir.php_ini_scan_dir_cli }}/{{ (item.key | default(item)) }}.ini"
-  register: cli_stats
-  vars:
-    cli_items: "{{ php.scandir.php_cli_modules_disable | default([], true) }}"
-  loop: "{{ cli_items }}"
-  loop_control:
-    label: "{{ (item.key | default(item)) }}"
-
-- name: Disable CLI PHP modules by renaming to .ini.off
-  ansible.builtin.command:
-    creates: "{{ php.scandir.php_ini_scan_dir_cli }}/{{ (item.item.key | default(item.item)) }}.ini.off"
-    argv: ["/bin/mv", "{{ php.scandir.php_ini_scan_dir_cli }}/{{ (item.item.key | default(item.item)) }}.ini", "{{ php.scandir.php_ini_scan_dir_cli }}/{{ (item.item.key | default(item.item)) }}.ini.off"]
-  loop: "{{ cli_stats.results | default([]) }}"
-  loop_control:
-    label: "{{ (item.item.key | default(item.item)) }}"
-  when: item.stat.exists | default(false)
+    label: "{{ item.path | basename }}"
 
 - name: Init getent database
   ansible.builtin.getent:
     database: passwd
 
-- name: Ensure PHP_INI_SCAN_DIR line exists in shell rc files (sh-compatible)
+- name: "Ensure PHP_INI_SCAN_DIR environment variable is set in all shells for user {{ item.0 }}"
   ansible.builtin.lineinfile:
     path: "{{ getent_passwd[item.0][4] }}/{{ item.1 }}"
     create: true
-    line: "export PHP_INI_SCAN_DIR={{ php.scandir.php_ini_scan_dir_cli }}"
-    regexp: '^\s*(export\s+)?PHP_INI_SCAN_DIR='
+    line: "{{ export.command }} PHP_INI_SCAN_DIR{{ export.separator }}{{ php.prefix.modules }}-cli"
+    regexp: '^\s*({{ export.command }}\s+)?PHP_INI_SCAN_DIR='
     state: present
     mode: "0644"
     owner: "{{ item.0 }}"
-  loop: "{{ php.scandir.overwrite_scandir_for_cli_user | product(['.bashrc', '.shrc', '.profile']) | list }}"
+  loop: "{{ php.modules.disable.for_users | product(['.bashrc', '.shrc', '.profile']) | list }}"
+  vars:
+    export: >-
+      {{
+        {'command': 'setenv', 'separator': ' '} if item.1 == '.cshrc' else {'command': 'export', 'separator': '=' }
+      }}
   loop_control:
     label: "{{ item.0 }} -> {{ item.1 }}"
-  when: php.scandir.overwrite_scandir_for_cli_user | length > 0
-
-- name: Ensure PHP_INI_SCAN_DIR line exists in csh rc file
-  ansible.builtin.lineinfile:
-    path: "{{ getent_passwd[item][4] }}/.cshrc"
-    create: true
-    line: "setenv PHP_INI_SCAN_DIR {{ php.scandir.php_ini_scan_dir_cli }}"
-    regexp: '^\s*setenv\s+PHP_INI_SCAN_DIR\s+'
-    state: present
-    mode: "0644"
-    owner: "{{ item }}"
-  loop: "{{ php.scandir.overwrite_scandir_for_cli_user }}"
-  loop_control:
-    label: "{{ item }}"
-  when: php.scandir.overwrite_scandir_for_cli_user | length > 0
+  when: php.modules.disable.for_users | length > 0

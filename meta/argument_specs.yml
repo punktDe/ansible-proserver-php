@@ -135,33 +135,32 @@ argument_specs:
               - Whether to install [Composer](https://getcomposer.org) on
                 the target machine.
               - Only applies to Debian-based targets.
-          scandir:
+          modules:
             type: dict
-            required: true
-            description: Options for disabling php-modules
+            description:
+              - Options for managing PHP modules.
             options:
-              php_ini_scan_dir_default:
-                description: Default path for PHP module configuration files
-                default: "/usr/local/etc/php"
-                type: str
-
-
-              php_ini_scan_dir_cli:
-                description: Cli path for PHP module configuration files
-                default: "/usr/local/etc/php-cli"
-                type: str
-
-              php_modules_disable:
-                type: list
-                description: List of modules to disable (module base names without extension)
-                default: []
-
-              php_cli_modules_disable:
-                description: List of users for whom to overwrite PHP_INI_SCAN_DIR for CLI within profile
-                type: list
-                default: []
-
-              overwrite_scandir_for_cli_user:
-                type: list
-                default: []
-                description: List of users for whom to overwrite PHP_INI_SCAN_DIR for CLI within profile
+              disable:
+                type: dict
+                default:
+                  cli: []
+                  all: []
+                  for_users: []
+                description:
+                  - Defines which PHP modules should be disabled globally, for CLI, or on a per-user basis.
+                options:
+                  all:
+                    type: list
+                    default: []
+                    description:
+                      - List of PHP modules to disable for all SAPIs.
+                  cli:
+                    type: list
+                    default: []
+                    description:
+                      - List of PHP modules to disable for CLI specifically.
+                  for_users:
+                    type: list
+                    default: []
+                    description:
+                      - List of users whose shell configuration should enforce `PHP_INI_SCAN_DIR` pointing to the CLI modules directory.
