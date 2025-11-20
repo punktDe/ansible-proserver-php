@@ -1,6 +1,13 @@
 ---
 - name: Verify
   hosts: all
+  vars:
+    php:
+      modules:
+        disable:
+          cli:
+            - exif
+            - tokenizer
   tasks:
     - name: Create the current_release folder
       ansible.builtin.file:
@@ -49,3 +56,17 @@
         - name: Display the log output
           ansible.builtin.fail:
             msg: "{{ nginx_log.stdout }}"
+
+    - name: Test PHP disabled modules
+      become_user: proserver
+      become: yes
+      register: php_enabled_modules
+      changed_when: no
+      ansible.builtin.shell:
+        executable: /bin/bash
+        cmd: source ~/.shrc && php -m
+
+    - name: Fail if tokenizer and exif are enabled
+      when: "'tokenizer' in php_enabled_modules.stdout or 'exif' in php_enabled_modules.stdout"
+      ansible.builtin.fail:
+        msg: "tokenizer and exif are still enabled!"

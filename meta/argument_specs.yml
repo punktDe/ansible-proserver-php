@@ -135,3 +135,32 @@ argument_specs:
               - Whether to install [Composer](https://getcomposer.org) on
                 the target machine.
               - Only applies to Debian-based targets.
+          modules:
+            type: dict
+            description:
+              - Options for managing PHP modules.
+            options:
+              disable:
+                type: dict
+                default:
+                  cli: []
+                  all: []
+                  for_users: []
+                description:
+                  - Defines which PHP modules should be disabled globally, for CLI, or on a per-user basis.
+                options:
+                  all:
+                    type: list
+                    default: []
+                    description:
+                      - List of PHP modules to disable for all SAPIs.
+                  cli:
+                    type: list
+                    default: []
+                    description:
+                      - List of PHP modules to disable for CLI specifically.
+                  for_users:
+                    type: list
+                    default: []
+                    description:
+                      - List of users whose shell configuration should enforce `PHP_INI_SCAN_DIR` pointing to the CLI modules directory.

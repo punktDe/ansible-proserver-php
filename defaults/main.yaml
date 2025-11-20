@@ -44,3 +44,8 @@ php:
         {%- endif -%}
   install_extensions: {}
   install_composer: no
+  modules:
+    disable:
+      cli: []
+      all: []
+      for_users: []

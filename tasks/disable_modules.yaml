@@ -1,0 +1,81 @@
+---
+- name: Ensure a CLI-specific module directory exists
+  ansible.builtin.file:
+    path: "{{ php.prefix.modules }}-cli"
+    state: directory
+    owner: root
+    mode: "0755"
+  register: php_cli_modules_folder_created
+
+- name: List all default PHP modules
+  ansible.builtin.find:
+    paths: "{{ php.prefix.modules }}"
+    patterns: "*.ini"
+    file_type: "{{ 'link' if ansible_os_family == 'Debian' else 'file' }}"
+  register: php_default_modules_list
+  when: php_cli_modules_folder_created is changed
+
+- name: Copy all default modules to the CLI-specific modules directory
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ php.prefix.modules }}-cli/{{ item.path | basename }}"
+    owner: root
+    mode: "0644"
+    remote_src: true
+  when: php_default_modules_list is defined and php_default_modules_list.files | length > 0
+  loop: "{{ php_default_modules_list.files }}"
+  loop_control:
+    label: "{{ item.path }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Check module ini files for all SAPIs
+  when: php.modules.disable.all | length > 0
+  ansible.builtin.find:
+    patterns: "{{ php.modules.disable | map('regex_replace', '^', '[0-9]{2}-') | map('regex_replace', '$', '\\.ini(?!\\.off)') }}"
+    use_regex: yes
+    paths: "{{ php.prefix.modules }}"
+    file_type: "{{ 'link' if ansible_os_family == 'Debian' else 'file' }}"
+  register: all_sapi_stats
+
+- name: Check CLI-specific module ini files
+  when: php.modules.disable.cli | length > 0
+  ansible.builtin.find:
+    patterns: "{{ php.modules.disable.cli | map('regex_replace', '^', '[0-9]{2}-') | map('regex_replace', '$', '\\.ini(?!\\.off)') }}"
+    use_regex: yes
+    paths: "{{ php.prefix.modules }}-cli"
+    file_type: any
+  register: cli_specific_stats
+
+- name: Disable PHP modules by renaming to .ini.off
+  ansible.builtin.command:
+    creates: "{{ item.path }}.off"
+    argv:
+      - "/bin/mv"
+      - "{{ item.path }}"
+      - "{{ item.path }}.off"
+  loop: "{{ ((all_sapi_stats | default({})).files | default([])) + ((cli_specific_stats | default({})).files | default([])) }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+
+- name: Init getent database
+  ansible.builtin.getent:
+    database: passwd
+
+- name: "Ensure PHP_INI_SCAN_DIR environment variable is set in all shells for user {{ item.0 }}"
+  ansible.builtin.lineinfile:
+    path: "{{ getent_passwd[item.0][4] }}/{{ item.1 }}"
+    create: true
+    line: "{{ export.command }} PHP_INI_SCAN_DIR{{ export.separator }}{{ php.prefix.modules }}-cli"
+    regexp: '^\s*({{ export.command }}\s+)?PHP_INI_SCAN_DIR='
+    state: present
+    mode: "0644"
+    owner: "{{ item.0 }}"
+  loop: "{{ php.modules.disable.for_users | product(['.bashrc', '.shrc', '.profile']) | list }}"
+  vars:
+    export: >-
+      {{
+        {'command': 'setenv', 'separator': ' '} if item.1 == '.cshrc' else {'command': 'export', 'separator': '=' }
+      }}
+  loop_control:
+    label: "{{ item.0 }} -> {{ item.1 }}"
+  when: php.modules.disable.for_users | length > 0

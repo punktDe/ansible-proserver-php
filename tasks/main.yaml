@@ -18,3 +18,7 @@
 
 - name: Configure PHP
   ansible.builtin.include_tasks: php.yaml
+
+- name: Disable php-modules
+  ansible.builtin.include_tasks: disable_modules.yaml
+  when: php.modules.disable.all | length > 0 or php.modules.disable.cli | length > 0
