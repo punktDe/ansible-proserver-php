@@ -31,7 +31,7 @@
 - name: Check module ini files for all SAPIs
   when: php.modules.disable.all | length > 0
   ansible.builtin.find:
-    patterns: "{{ php.modules.disable | map('regex_replace', '^', '[0-9]{2}-') | map('regex_replace', '$', '\\.ini(?!\\.off)') }}"
+    patterns: "{{ php.modules.disable | map('regex_replace', '^', '(ext-)?[0-9]{2}-') | map('regex_replace', '$', '\\.ini(?!\\.off)') }}"
     use_regex: yes
     paths: "{{ php.prefix.modules }}"
     file_type: "{{ 'link' if ansible_os_family == 'Debian' else 'file' }}"
