@@ -20,7 +20,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Set up Python
-        run: uv python install 3.13
+        run: uv python install 3.14
 
       - name: Install dependencies
         run: |
@@ -36,7 +36,7 @@ jobs:
   molecule:
     strategy:
       matrix:
-        os: [ubuntu-2204, ubuntu-2404, debian-12]
+        os: [ubuntu-2204, ubuntu-2404, debian-12, debian-13]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -46,7 +46,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Set up Python
-        run: uv python install 3.13
+        run: uv python install 3.14
 
       - name: Install dependencies.
         run: |

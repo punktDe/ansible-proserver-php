@@ -4,13 +4,13 @@ php:
     apt:
       enabled: no
       repository: >-
-        {%- if ansible_distribution == 'Ubuntu' -%}
+        {%- if ansible_facts['distribution'] == 'Ubuntu' -%}
           https://ppa.launchpadcontent.net/ondrej/php/ubuntu
         {%- else -%}
           https://packages.sury.org/php/
         {%- endif -%}
       key_url: >-
-        {%- if ansible_distribution == 'Ubuntu' -%}
+        {%- if ansible_facts['distribution'] == 'Ubuntu' -%}
           https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xb8dc7e53946656efbce4c1dd71daeaab4ad4cab6
         {%- else -%}
           https://packages.sury.org/php/apt.gpg
@@ -31,13 +31,13 @@ php:
   phpfpmtop:
     release:
       url: >-
-        {%- if ansible_system == 'Linux' -%}
+        {%- if ansible_facts['system'] == 'Linux' -%}
           https://github.com/abrander/phpfpmtop/releases/download/v0.2/phpfpmtop_linux_amd64
         {%- else -%}
           https://github.com/punktDe/proserver-ansible-php/releases/download/phpfpmtop-v1/phpfpmtop-freebsd-amd64
         {%- endif -%}
       checksum: >-
-        {%- if ansible_system == 'Linux' -%}
+        {%- if ansible_facts['system'] == 'Linux' -%}
           sha256:59be43ae507c3229d186f0dc71e51aa46f9322de6a9867c3c684656bc8ab947d
         {%- else -%}
           sha256:2f1fb65ae33976fac2e976ac16c00f0126d3fe4980c4413e8bea54c518b16407

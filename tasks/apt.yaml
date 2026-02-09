@@ -19,7 +19,7 @@
     signed_by: "{{ php.repository.apt.key_url }}"
     types: [deb]
     components: [main]
-    suites: "{{ ansible_distribution_release }}"
+    suites: "{{ ansible_facts['distribution_release'] }}"
     state: "{{ 'present' if php.repository.apt.enabled else 'absent' }}"
     enabled: "{{ php.repository.apt.enabled }}"
 

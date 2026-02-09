@@ -1,4 +1,4 @@
-ansible<12.0.0
+ansible
 ansible-lint
 docker
 molecule<25.2.0
