@@ -14,17 +14,16 @@
     patterns: "*.ini"
     file_type: "{{ 'link' if ansible_facts['os_family'] == 'Debian' else 'file' }}"
   register: php_default_modules_list
-  when: php_cli_modules_folder_created is changed
+  when: php_cli_modules_folder_created is defined and php_cli_modules_folder_created is changed
 
 - name: Copy all default modules to the CLI-specific modules directory
-  when: php.modules.disable.cli | length > 0
   ansible.builtin.copy:
     src: "{{ item.path }}"
     dest: "{{ php.prefix.modules }}-cli/{{ item.path | basename }}"
     owner: root
     mode: "0644"
     remote_src: true
-  when: php_default_modules_list is defined and php_default_modules_list.files | length > 0
+  when: php.modules.disable.cli | length > 0 and php_default_modules_list is defined and php_default_modules_list.files | length > 0
   loop: "{{ php_default_modules_list.files | default([]) }}"
   loop_control:
     label: "{{ item.path }}"
