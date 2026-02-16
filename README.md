@@ -1,11 +1,18 @@
 <!-- BEGIN_ANSIBLE_DOCS -->
+<!--
+Do not edit README.md directly!
+
+This file is generated automatically by aar-doc and will be overwritten.
+
+Please edit meta/argument_specs.yml instead.
+-->
 # ansible-proserver-php
 
-Ansible role for PHP
+php role for Proserver
 
 ## Supported Operating Systems
 
-- Debian 12
+- Debian 12, 13
 - Ubuntu 24.04, 22.04
 - FreeBSD [Proserver](https://infrastructure.punkt.de/de/produkte/proserver.html)
 
@@ -91,7 +98,7 @@ None.
 Add this role to the requirements.yml of your playbook as follows:
 ```yaml
 roles:
-  - name: php
+  - name: ansible-proserver-php
     src: https://github.com/punktDe/ansible-proserver-php
 ```
 
@@ -102,7 +109,7 @@ Afterwards, install the role by running `ansible-galaxy install -r requirements.
 ```yaml
 - hosts: all
   roles:
-    - name: php
+    - name: ansible-proserver-php
 ```
 
 <!-- END_ANSIBLE_DOCS -->

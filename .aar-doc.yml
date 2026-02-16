@@ -3,13 +3,20 @@ output_file: README.md
 output_mode: replace
 output_template: |
   <!-- BEGIN_ANSIBLE_DOCS -->
+  <!--
+  Do not edit README.md directly!
+
+  This file is generated automatically by aar-doc and will be overwritten.
+
+  Please edit meta/argument_specs.yml instead.
+  -->
   # {{ role }}
 
   {{ metadata.galaxy_info.description }}
 
   ## Supported Operating Systems
 
-  - Debian 12
+  - Debian 12, 13
   - Ubuntu 24.04, 22.04
   - FreeBSD [Proserver](https://infrastructure.punkt.de/de/produkte/proserver.html)
 
@@ -29,7 +36,6 @@ output_template: |
   {% endif -%}
 
   {% if entrypoint_options[entrypoint] | length > 1 -%}
-
   {% for path, options in entrypoint_options[entrypoint][1:] -%}
   #### Options for `{{ path | reject('eq', 'main') | join(".") }}`
 
@@ -82,7 +88,7 @@ output_template: |
   Add this role to the requirements.yml of your playbook as follows:
   ```yaml
   roles:
-    - name: php
+    - name: {{ role }}
       src: https://github.com/punktDe/ansible-proserver-php
   ```
 
@@ -93,7 +99,7 @@ output_template: |
   ```yaml
   - hosts: all
     roles:
-      - name: php
+      - name: {{ role }}
   ```
 
   <!-- END_ANSIBLE_DOCS -->

@@ -8,8 +8,6 @@ collections:
     type: git
 
 roles:
-  - name: php
-    src: https://github.com/punktDe/ansible-proserver-php
   - name: nginx
     src: https://github.com/punktDe/ansible-proserver-nginx
   - name: dehydrated

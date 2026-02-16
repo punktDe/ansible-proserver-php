@@ -16,7 +16,7 @@
           for_users:
             - root
             - proserver
-          cli:
+          all:
             - exif
             - tokenizer
       version: "8.1"
