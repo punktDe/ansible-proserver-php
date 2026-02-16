@@ -1,5 +1,6 @@
 ---
 - name: Ensure a CLI-specific module directory exists
+  when: php.modules.disable.cli | length > 0
   ansible.builtin.file:
     path: "{{ php.prefix.modules }}-cli"
     state: directory
@@ -16,6 +17,7 @@
   when: php_cli_modules_folder_created is changed
 
 - name: Copy all default modules to the CLI-specific modules directory
+  when: php.modules.disable.cli | length > 0
   ansible.builtin.copy:
     src: "{{ item.path }}"
     dest: "{{ php.prefix.modules }}-cli/{{ item.path | basename }}"
@@ -78,4 +80,4 @@
       }}
   loop_control:
     label: "{{ item.0 }} -> {{ item.1 }}"
-  when: php.modules.disable.for_users | length > 0
+  when: php.modules.disable.for_users | length > 0 and php.modules.disable.cli | length > 0
