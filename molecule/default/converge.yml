@@ -19,6 +19,8 @@
           all:
             - exif
             - tokenizer
+          cli:
+            - calendar
       version: "8.1"
       repository:
         apt:
