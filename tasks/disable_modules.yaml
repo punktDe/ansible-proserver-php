@@ -18,15 +18,16 @@
 - name: Copy all default modules to the CLI-specific modules directory
   ansible.builtin.copy:
     src: "{{ item.path }}"
-    dest: "{{ php.prefix.modules }}-cli/{{ item.path | basename }}"
+    # Modules disabled for the CLI (or for all SAPIs) are copied straight to .ini.off, never as an active .ini:
+    # copying them as .ini on every run would bring back an active module next to the .ini.off
+    dest: "{{ php.prefix.modules }}-cli/{{ item.path | basename }}{{ '.off' if item.path is search(php_cli_disabled_pattern) else '' }}"
     owner: root
     mode: "0644"
     remote_src: true
   when: php.modules.disable.cli | length > 0 and php_default_modules_list is defined and php_default_modules_list.files | length > 0
-  # Skip the CLI-disabled modules: copying them again on every run would bring back an active .ini next to the .ini.off
-  loop: "{{ php_default_modules_list.files | default([]) | rejectattr('path', 'search', php_cli_disabled_pattern) | list }}"
+  loop: "{{ php_default_modules_list.files | default([]) }}"
   vars:
-    php_cli_disabled_pattern: "/(ext-)?[0-9]{2}-({{ php.modules.disable.cli | map('regex_escape') | join('|') }})\\.ini$"
+    php_cli_disabled_pattern: "/(ext-)?[0-9]{2}-({{ (php.modules.disable.cli + php.modules.disable.all) | map('regex_escape') | join('|') }})\\.ini$"
   loop_control:
     label: "{{ item.path }}"
   ignore_errors: "{{ ansible_check_mode }}"
@@ -43,7 +44,7 @@
 - name: Check CLI-specific module ini files
   when: php.modules.disable.cli | length > 0
   ansible.builtin.find:
-    patterns: "{{ php.modules.disable.cli | map('regex_replace', '^', '(ext-)?[0-9]{2}-') | map('regex_replace', '$', '\\.ini(?!\\.off)') }}"
+    patterns: "{{ (php.modules.disable.cli + php.modules.disable.all) | map('regex_replace', '^', '(ext-)?[0-9]{2}-') | map('regex_replace', '$', '\\.ini(?!\\.off)') }}"
     use_regex: yes
     paths: "{{ php.prefix.modules }}-cli"
     file_type: any
