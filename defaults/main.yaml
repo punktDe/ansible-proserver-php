@@ -3,14 +3,15 @@ php:
   repository:
     apt:
       enabled: no
+      # The ondrej/php PPA publishes no packages for Ubuntu 26.04 and later, use packages.sury.org there instead
       repository: >-
-        {%- if ansible_facts['distribution'] == 'Ubuntu' -%}
+        {%- if ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_major_version'] | int < 26 -%}
           https://ppa.launchpadcontent.net/ondrej/php/ubuntu
         {%- else -%}
           https://packages.sury.org/php/
         {%- endif -%}
       key_url: >-
-        {%- if ansible_facts['distribution'] == 'Ubuntu' -%}
+        {%- if ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_major_version'] | int < 26 -%}
           https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xb8dc7e53946656efbce4c1dd71daeaab4ad4cab6
         {%- else -%}
           https://packages.sury.org/php/apt.gpg
