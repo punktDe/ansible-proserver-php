@@ -96,3 +96,8 @@
         or php_cli_module_names | select('match', '^(ext-)?[0-9]{2}-' + item + '\\.ini\\.off$') | list | length == 0
       ansible.builtin.fail:
         msg: "{{ item }} must only exist as .ini.off in {{ ansible_local.php.prefix.modules }}-cli, found: {{ php_cli_module_names | select('search', item) | list }}"
+
+    - name: Check that a new PHP extension can be installed from the configured repository
+      check_mode: yes
+      ansible.builtin.apt:
+        name: php{{ ansible_local.php.version }}-gd

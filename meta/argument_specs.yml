@@ -43,7 +43,16 @@ argument_specs:
                     type: "str"
                     required: true
                     description:
-                      - URL for the APT repository
+                      - URL for the APT repository (packages.sury.org on all Debian-based systems, including Ubuntu)
+                  migrate_from_ppa:
+                    type: "bool"
+                    default: false
+                    description:
+                      - Switch PHP packages that are still installed from the ondrej/php PPA (used on Ubuntu up to
+                        version 4.x of this role) to the configured repository, in one apt transaction followed by a
+                        PHP-FPM restart
+                      - Without it, the role stops when it finds such packages.
+                        See "Migrating from the ondrej/php PPA" below.
           version:
             type: str
             default: "{{ ansible_local.php.version | default('') }}"

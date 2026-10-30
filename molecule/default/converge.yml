@@ -25,6 +25,8 @@
       repository:
         apt:
           enabled: yes
+          # prepare.yml installs PHP from the ondrej/php PPA on Ubuntu, like version 4.x of this role did
+          migrate_from_ppa: yes
   tasks:
     - name: Include ansible-proserver-system
       ansible.builtin.include_role:

@@ -34,3 +34,49 @@
   check_mode: no
   changed_when: no
   ansible.builtin.setup: {}
+
+# Up to 4.x the role used the ondrej/php PPA on Ubuntu. Its builds carry a higher version than the packages.sury.org
+# builds of the same PHP release, so apt keeps them after the repository switch, and installing a new extension then
+# fails on its exact php<version>-common dependency. See "Migrating from the ondrej/php PPA" in the README.
+- name: Find installed PHP packages that are only available from the configured repository in another version
+  when: php.repository.apt.enabled
+  changed_when: no
+  check_mode: no
+  register: php_packages_to_migrate
+  ansible.builtin.shell:
+    executable: /bin/bash
+    cmd: |
+      set -o pipefail
+      dpkg-query -W -f='${db:Status-Abbrev} ${Package} ${Version}\n' 'php*' | awk '$1 ~ /^[hi]i/ {print $2, $3}' |
+      while read -r package installed; do
+        repository_versions=$(apt-cache madison "$package" | awk -F' [|] ' '{print $2 "|" $3}')
+        # Still installable from a repository: nothing to migrate
+        awk -F'|' -v installed="$installed" '$1 == installed {found = 1} END {exit !found}' <<< "$repository_versions" \
+          && continue
+        candidate=$(awk -F'|' -v repository="{{ php.repository.apt.repository | regex_replace('/$', '') }}" \
+          'index($2, repository) {print $1; exit}' <<< "$repository_versions")
+        [ -n "$candidate" ] && echo "${package}=${candidate}"
+      done || true
+
+- name: Fail if PHP packages need to be migrated from the ondrej/php PPA
+  when:
+    - php.repository.apt.enabled
+    - php_packages_to_migrate.stdout_lines | length > 0
+    - not php.repository.apt.migrate_from_ppa
+  ansible.builtin.fail:
+    msg: >-
+      These PHP packages are installed in a version that no configured repository provides any more, most likely
+      from the ondrej/php PPA used up to version 4.x of this role:
+      {{ php_packages_to_migrate.stdout_lines | map('regex_replace', '=.*$', '') | join(', ') }}.
+      Set php.repository.apt.migrate_from_ppa to true to switch them to {{ php.repository.apt.repository }}
+      (see "Migrating from the ondrej/php PPA" in the README of this role).
+
+- name: Switch all affected PHP packages to the configured repository in one transaction
+  when:
+    - php.repository.apt.enabled
+    - php_packages_to_migrate.stdout_lines | length > 0
+    - php.repository.apt.migrate_from_ppa
+  notify: Restart PHP-FPM
+  ansible.builtin.apt:
+    name: "{{ php_packages_to_migrate.stdout_lines }}"
+    allow_downgrade: yes

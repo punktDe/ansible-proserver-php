@@ -67,6 +67,49 @@ output_template: |
 
   {% endfor -%}
 
+  ## Migrating from the ondrej/php PPA
+
+  Up to version 4.x, this role used the [ondrej/php PPA](https://launchpad.net/~ondrej/+archive/ubuntu/php) on Ubuntu.
+  The PPA publishes no packages for Ubuntu 26.04 and later, so from version 5.0.0 on the role uses
+  [packages.sury.org](https://packages.sury.org/php/) on all Debian-based systems, including Ubuntu.
+
+  This only matters for existing Ubuntu hosts with `php.repository.apt.enabled: true`. The PPA builds carry a higher
+  version than the packages.sury.org builds of the same PHP release (e.g. `8.1.34-9+ubuntu24.04.1+deb.sury.org+1`
+  vs. `8.1.34-9+0~20261021.82+ubuntu24.04~1.gbp4e430a`). After the repository switch, apt therefore keeps the
+  installed PPA builds, and installing a new extension fails because it requires the exact packages.sury.org
+  build of `php<version>-common`. Downgrading single packages by hand is not an option: apt would remove
+  `php<version>-fpm` and `php<version>-cli` to resolve the dependencies.
+
+  The role detects this state on every run: any installed `php*` package whose version no configured repository
+  provides any more, while packages.sury.org provides it. Without further configuration, the role stops and lists
+  those packages, so nothing changes on a host unnoticed.
+
+  To migrate a host (once per host, repeatable):
+
+  1. Plan a short PHP-FPM restart, the migration restarts the service.
+  2. Set `php.repository.apt.migrate_from_ppa: true` for the host (e.g. in its `host_vars`).
+  3. Optionally preview the change by running the playbook with `--check --diff`.
+  4. Run the playbook. The role switches all affected PHP packages to their current packages.sury.org build in a
+     single apt transaction (no package is removed) and restarts PHP-FPM.
+  5. Run the playbook again: once nothing is left from the PPA, the migration step does nothing. The option can
+     stay enabled, or be removed again.
+
+  If the PPA is still configured outside of this role (e.g. via `add-apt-repository`, as
+  `/etc/apt/sources.list.d/ondrej-ubuntu-php-*.sources`), apt keeps following it and the role finds nothing to
+  migrate. Remove that file first.
+
+  The manual equivalent, for a host that is not managed by this role, is to switch every installed PHP package
+  at once, e.g. for PHP 8.1 on Ubuntu 24.04:
+
+  ```sh
+  apt-get update
+  apt-get install --allow-downgrades $(dpkg-query -W -f='${db:Status-Abbrev} ${Package}\n' 'php*' \
+    | awk '$1 == "ii" {print $2}' \
+    | while read -r p; do v=$(apt-cache madison "$p" | awk -F' [|] ' '/packages.sury.org/ {print $2; exit}'); \
+      [ -n "$v" ] && echo "$p=$v"; done)
+  systemctl restart php8.1-fpm
+  ```
+
   ## Dependencies
 
   {%- if ("dependencies" in metadata) and (metadata.dependencies | length > 0) %}
