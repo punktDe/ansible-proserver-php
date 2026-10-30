@@ -164,3 +164,51 @@ argument_specs:
                     default: []
                     description:
                       - List of users whose shell configuration should enforce `PHP_INI_SCAN_DIR` pointing to the CLI modules directory.
+          cli:
+            type: dict
+            description:
+              - Options for the PHP CLI environment.
+            options:
+              ld_bind_now:
+                type: dict
+                default:
+                  enabled: false
+                  for_users: []
+                  login_class: php_cli
+                description:
+                  - Sets `LD_BIND_NOW=1` for the given users through a login class in `/etc/login.conf`,
+                    so the dynamic linker resolves all symbols when PHP starts instead of on first use.
+                  - FreeBSD only. Enabling it on any other system fails the play.
+                  - Works around PHP CLI processes that segfault on exit on FreeBSD when many extensions are
+                    loaded ([FreeBSD PR 295991](https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=295991)).
+                    Use it instead of disabling modules for that crash.
+                  - The login class applies to every login of these users (SSH logins and commands, `su -`,
+                    `sudo -i`) and to their cron jobs, independent of their shell and its startup files.
+                  - Not covered are `sudo -u <user>` without `-i`, which resets the environment, and services
+                    started by rc. They need `LD_BIND_NOW=1` in their own environment.
+                  - "Removing it is a manual step: setting `enabled: false` or dropping a user from `for_users`
+                    leaves the login class and the users' class as they are. To undo it on a host, as root:
+                    move each user back with `pw usermod <user> -L default`, delete the block between the
+                    `BEGIN`/`END ANSIBLE MANAGED BLOCK: LD_BIND_NOW workaround (FreeBSD PR 295991)` markers
+                    from `/etc/login.conf`, run `cap_mkdb /etc/login.conf`, and check with
+                    `ssh <user>@<host> printenv LD_BIND_NOW`, which should print nothing."
+                options:
+                  enabled:
+                    type: bool
+                    default: false
+                    description:
+                      - Whether the login class is set up and assigned. `false` does nothing; it doesn't undo
+                        an earlier run, see the manual steps above.
+                  for_users:
+                    type: list
+                    default: []
+                    description:
+                      - List of users that get the login class. Removing a user from the list doesn't move it
+                        back to `default`.
+                  login_class:
+                    type: str
+                    default: php_cli
+                    description:
+                      - Name of the login class. It inherits everything else from the `default` class.
+                      - The users are moved to this class, so pick a dedicated name if they are in a custom class
+                        today.

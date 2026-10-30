@@ -41,6 +41,7 @@ Apart from `php.version` (on a Debian-based system), you probably shouldn't chan
 | `install_extensions` | Defines PHP extensions to be installed on the target machine in the `{'extension_name': true}` format, e.g. `{'pdo-mysql': true, 'mbstring': true}`. Only applies to Debian-based targets. | dict | no |  |
 | `install_composer` | Whether to install [Composer](https://getcomposer.org) on the target machine. Only applies to Debian-based targets. | bool | no | `False` |
 | `modules` | Options for managing PHP modules. | dict of `modules` [options](#options-for-main--php--modules) | no |  |
+| `cli` | Options for the PHP CLI environment. | dict of `cli` [options](#options-for-main--php--cli) | no |  |
 
 #### Options for `php.repository`
 
@@ -90,6 +91,20 @@ Apart from `php.version` (on a Debian-based system), you probably shouldn't chan
 | `all` | List of PHP modules to disable for all SAPIs. | list of `` | no | `[]` |
 | `cli` | List of PHP modules to disable for CLI specifically. | list of `` | no | `[]` |
 | `for_users` | List of users whose shell configuration should enforce `PHP_INI_SCAN_DIR` pointing to the CLI modules directory. | list of `` | no | `[]` |
+
+#### Options for `php.cli`
+
+|Option|Description|Type|Required|Default|
+|---|---|---|---|---|
+| `ld_bind_now` | Sets `LD_BIND_NOW=1` for the given users through a login class in `/etc/login.conf`, so the dynamic linker resolves all symbols when PHP starts instead of on first use. FreeBSD only. Enabling it on any other system fails the play. Works around PHP CLI processes that segfault on exit on FreeBSD when many extensions are loaded ([FreeBSD PR 295991](https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=295991)). Use it instead of disabling modules for that crash. The login class applies to every login of these users (SSH logins and commands, `su -`, `sudo -i`) and to their cron jobs, independent of their shell and its startup files. Not covered are `sudo -u <user>` without `-i`, which resets the environment, and services started by rc. They need `LD_BIND_NOW=1` in their own environment. Removing it is a manual step: setting `enabled: false` or dropping a user from `for_users` leaves the login class and the users' class as they are. To undo it on a host, as root: move each user back with `pw usermod <user> -L default`, delete the block between the `BEGIN`/`END ANSIBLE MANAGED BLOCK: LD_BIND_NOW workaround (FreeBSD PR 295991)` markers from `/etc/login.conf`, run `cap_mkdb /etc/login.conf`, and check with `ssh <user>@<host> printenv LD_BIND_NOW`, which should print nothing. | dict of `ld_bind_now` [options](#options-for-main--php--cli--ld_bind_now) | no | `{'enabled': False, 'for_users': [], 'login_class': 'php_cli'}` |
+
+#### Options for `php.cli.ld_bind_now`
+
+|Option|Description|Type|Required|Default|
+|---|---|---|---|---|
+| `enabled` | Whether the login class is set up and assigned. `false` does nothing; it doesn't undo an earlier run, see the manual steps above. | bool | no | `False` |
+| `for_users` | List of users that get the login class. Removing a user from the list doesn't move it back to `default`. | list of `` | no | `[]` |
+| `login_class` | Name of the login class. It inherits everything else from the `default` class. The users are moved to this class, so pick a dedicated name if they are in a custom class today. | str | no | `php_cli` |
 
 ## Dependencies
 None.

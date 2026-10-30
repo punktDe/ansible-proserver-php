@@ -50,3 +50,8 @@ php:
       cli: []
       all: []
       for_users: []
+  cli:
+    ld_bind_now:
+      enabled: no
+      for_users: []
+      login_class: php_cli

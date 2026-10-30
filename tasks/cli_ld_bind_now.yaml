@@ -1,0 +1,22 @@
+---
+# PHP CLI processes with many extensions loaded can segfault on exit on FreeBSD: a posix_spawnp()
+# child (e.g. Symfony Console's `stty` call) runs on a tiny stack, and lazy symbol binding in rtld
+# overflows it into the parent's heap (FreeBSD PR 295991). LD_BIND_NOW=1 resolves all symbols at
+# startup, so the child has nothing left to bind.
+# A login class sets it for every login of the users and for their cron jobs.
+# Only runs while enabled; removing it again is a manual step, see meta/argument_specs.yml.
+
+# login.conf continuation lines are tab-indented like the other classes
+- name: Add the login class with LD_BIND_NOW=1  # noqa: no-tabs
+  ansible.builtin.blockinfile:
+    path: /etc/login.conf
+    # Independent of the class name, so renaming the class replaces the block instead of adding one
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: LD_BIND_NOW workaround (FreeBSD PR 295991)"
+    block: "{{ php.cli.ld_bind_now.login_class }}:\\\n\t:setenv=LD_BIND_NOW=1:\\\n\t:tc=default:"
+  notify: Rebuild the login class database
+
+- name: Assign the login class to the PHP CLI users
+  ansible.builtin.user:
+    name: "{{ item }}"
+    login_class: "{{ php.cli.ld_bind_now.login_class }}"
+  loop: "{{ php.cli.ld_bind_now.for_users }}"
