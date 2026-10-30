@@ -55,7 +55,8 @@ Apart from `php.version` (on a Debian-based system), you probably shouldn't chan
 |---|---|---|---|---|
 | `enabled` | Whether the 3rd party APT repository should be installed and used | bool | no | `False` |
 | `key_url` | URL for the GPG key used to signed the APT repository | str | yes |  |
-| `repository` | URL for the APT repository | str | yes |  |
+| `repository` | URL for the APT repository (packages.sury.org on all Debian-based systems, including Ubuntu) | str | yes |  |
+| `migrate_from_ppa` | Switch PHP packages that are still installed from the ondrej/php PPA (used on Ubuntu up to version 4.x of this role) to the configured repository, in one apt transaction followed by a PHP-FPM restart Without it, the role stops before changing the repository when it finds such packages. See "Migrating from the ondrej/php PPA" below. | bool | no | `False` |
 
 #### Options for `php.fpm`
 
@@ -105,6 +106,74 @@ Apart from `php.version` (on a Debian-based system), you probably shouldn't chan
 | `enabled` | Whether the login class is set up and assigned. `false` does nothing; it doesn't undo an earlier run, see the manual steps above. | bool | no | `False` |
 | `for_users` | List of users that get the login class. Removing a user from the list doesn't move it back to `default`. | list of `` | no | `[]` |
 | `login_class` | Name of the login class. It inherits everything else from the `default` class. The users are moved to this class, so pick a dedicated name if they are in a custom class today. | str | no | `php_cli` |
+
+## Migrating from the ondrej/php PPA
+
+Up to version 4.x, this role used the [ondrej/php PPA](https://launchpad.net/~ondrej/+archive/ubuntu/php) on Ubuntu.
+The PPA publishes no packages for Ubuntu 26.04 and later, so from version 5.0.0 on the role uses
+[packages.sury.org](https://packages.sury.org/php/) on all Debian-based systems, including Ubuntu.
+
+This only matters for existing Ubuntu hosts with `php.repository.apt.enabled: true`. The PPA builds carry a higher
+version than the packages.sury.org builds of the same PHP release (e.g. `8.1.34-9+ubuntu24.04.1+deb.sury.org+1`
+vs. `8.1.34-9+0~20261021.82+ubuntu24.04~1.gbp4e430a`). After the repository switch, apt therefore keeps the
+installed PPA builds, and installing a new extension fails because it requires the exact packages.sury.org
+build of `php<version>-common`. Downgrading single packages by hand is not an option: apt would remove
+`php<version>-fpm` and `php<version>-cli` to resolve the dependencies.
+
+On every run, before it touches the repository configuration, the role looks for installed `php*` packages
+whose installed version comes from the PPA, or from no repository at all (a PPA that was already removed).
+Without further configuration, the role stops at that point and lists those packages: the host keeps its PPA and
+nothing is changed. This also works in check mode.
+
+To migrate a host (once per host, repeatable):
+
+1. Plan a short PHP-FPM restart, the migration restarts the service.
+2. Run the playbook with `--check` to see whether the host is affected: the role stops and lists the PHP
+   packages from the PPA.
+3. Set `php.repository.apt.migrate_from_ppa: true` for the host (e.g. in its `host_vars`).
+4. Run the playbook. The role replaces the PPA with packages.sury.org and switches all affected PHP packages to
+   their current packages.sury.org build in a single apt transaction (no package is removed). PHP-FPM is
+   restarted afterwards.
+5. Run the playbook again: once nothing is left from the PPA, the migration steps do nothing. The option can
+   stay enabled, or be removed again.
+
+If the PPA is also configured outside of this role (e.g. via `add-apt-repository`, as
+`/etc/apt/sources.list.d/ondrej-ubuntu-php-*.sources`), remove that file before migrating. Otherwise apt keeps
+offering the higher PPA builds, and the next `apt upgrade` installs them again.
+
+### Unattended upgrades
+
+Unattended upgrades only install packages from origins that are explicitly allowed. To have PHP updated
+automatically, packages.sury.org has to be allowed as an origin, e.g. with
+`system.unattended_upgrades.config.origins_pattern` of the
+[ansible-proserver-system](https://github.com/punktDe/ansible-proserver-system) role:
+
+```yaml
+system:
+  unattended_upgrades:
+    config:
+      origins_pattern:
+        php: "origin=deb.sury.org,codename=${distro_codename}"
+```
+
+An entry for the PPA (`origin=LP-PPA-ondrej-php`) matches nothing after the switch, replace it. On a host that
+was switched without migrating, unattended upgrades never downgrade: they leave the PPA builds in place and
+only replace them, PHP-FPM restart included, once packages.sury.org publishes a newer PHP release.
+
+### Without this role
+
+The manual equivalent is to replace the PPA with packages.sury.org in the apt sources, then switch every
+installed PHP package at once, e.g. for PHP 8.1 on Ubuntu 24.04:
+
+```sh
+apt-get update
+apt-get install --allow-downgrades $(dpkg-query -W -f='${db:Status-Abbrev} ${Package}
+' 'php*' \
+  | awk '$1 == "ii" {print $2}' \
+  | while read -r p; do v=$(apt-cache madison "$p" | awk -F' [|] ' '/packages.sury.org/ {print $2; exit}'); \
+    [ -n "$v" ] && echo "$p=$v"; done)
+systemctl restart php8.1-fpm
+```
 
 ## Dependencies
 None.
