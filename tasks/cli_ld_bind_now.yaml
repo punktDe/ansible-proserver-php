@@ -3,7 +3,7 @@
 # child (e.g. Symfony Console's `stty` call) runs on a tiny stack, and lazy symbol binding in rtld
 # overflows it into the parent's heap (FreeBSD PR 295991). LD_BIND_NOW=1 resolves all symbols at
 # startup, so the child has nothing left to bind.
-# A login class sets it for every login of the users; cron jobs aren't logins and are not covered.
+# A login class sets it for every login of the users and for their cron jobs.
 
 # login.conf continuation lines are tab-indented like the other classes
 - name: Manage the login class with LD_BIND_NOW=1  # noqa: no-tabs

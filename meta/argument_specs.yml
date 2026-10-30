@@ -183,10 +183,9 @@ argument_specs:
                     loaded ([FreeBSD PR 295991](https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=295991)).
                     Use it instead of disabling modules for that crash.
                   - The login class applies to every login of these users (SSH logins and commands, `su -`,
-                    `sudo -i`), independent of their shell and its startup files.
-                  - Cron jobs are not covered, because they aren't logins. Set `LD_BIND_NOW=1` separately in
-                    the crontab, e.g. as an environment line at the top. The same applies to `sudo -u <user>`
-                    without `-i` and to services started by rc.
+                    `sudo -i`) and to their cron jobs, independent of their shell and its startup files.
+                  - Not covered are `sudo -u <user>` without `-i`, which resets the environment, and services
+                    started by rc. They need `LD_BIND_NOW=1` in their own environment.
                 options:
                   enabled:
                     type: bool
