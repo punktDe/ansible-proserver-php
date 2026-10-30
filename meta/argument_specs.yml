@@ -187,21 +187,27 @@ argument_specs:
                     `sudo -i`) and to their cron jobs, independent of their shell and its startup files.
                   - Not covered are `sudo -u <user>` without `-i`, which resets the environment, and services
                     started by rc. They need `LD_BIND_NOW=1` in their own environment.
+                  - "Removing it is a manual step: setting `enabled: false` or dropping a user from `for_users`
+                    leaves the login class and the users' class as they are. To undo it on a host, as root:
+                    move each user back with `pw usermod <user> -L default`, delete the block between the
+                    `BEGIN`/`END ANSIBLE MANAGED BLOCK: LD_BIND_NOW workaround (FreeBSD PR 295991)` markers
+                    from `/etc/login.conf`, run `cap_mkdb /etc/login.conf`, and check with
+                    `ssh <user>@<host> printenv LD_BIND_NOW`, which should print nothing."
                 options:
                   enabled:
                     type: bool
                     default: false
                     description:
-                      - Whether the login class is set up and assigned. `false` removes the class again and
-                        moves those of the users back to the `default` class that are still in it; users in any
-                        other class are left alone.
+                      - Whether the login class is set up and assigned. `false` does nothing; it doesn't undo
+                        an earlier run, see the manual steps above.
                   for_users:
                     type: list
                     default:
                       - proserver
                     description:
                       - List of users that get the login class. Defaults to `proserver`; set the full list to
-                        add more users, e.g. the user Ansible connects with.
+                        add more users, e.g. the user Ansible connects with. Removing a user from the list
+                        doesn't move it back to `default`.
                   login_class:
                     type: str
                     default: php_cli
