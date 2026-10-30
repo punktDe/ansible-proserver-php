@@ -3,3 +3,8 @@
   ansible.builtin.service:
     name: "{{ php.fpm.service }}"
     state: restarted
+
+- name: Rebuild the login class database
+  ansible.builtin.command:
+    cmd: cap_mkdb /etc/login.conf
+  changed_when: true

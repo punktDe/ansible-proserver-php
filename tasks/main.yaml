@@ -22,3 +22,7 @@
 - name: Disable php-modules
   ansible.builtin.include_tasks: disable_modules.yaml
   when: php.modules.disable.all | length > 0 or php.modules.disable.cli | length > 0
+
+- name: Manage LD_BIND_NOW for the PHP CLI (FreeBSD)
+  ansible.builtin.include_tasks: cli_ld_bind_now.yaml
+  when: ansible_os_family == 'FreeBSD' and php.cli.ld_bind_now.for_users | length > 0
