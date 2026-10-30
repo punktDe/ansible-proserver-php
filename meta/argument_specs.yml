@@ -173,8 +173,7 @@ argument_specs:
                 type: dict
                 default:
                   enabled: false
-                  for_users:
-                    - proserver
+                  for_users: []
                   login_class: php_cli
                 description:
                   - Sets `LD_BIND_NOW=1` for the given users through a login class in `/etc/login.conf`,
@@ -202,12 +201,10 @@ argument_specs:
                         an earlier run, see the manual steps above.
                   for_users:
                     type: list
-                    default:
-                      - proserver
+                    default: []
                     description:
-                      - List of users that get the login class. Defaults to `proserver`; set the full list to
-                        add more users, e.g. the user Ansible connects with. Removing a user from the list
-                        doesn't move it back to `default`.
+                      - List of users that get the login class. Removing a user from the list doesn't move it
+                        back to `default`.
                   login_class:
                     type: str
                     default: php_cli

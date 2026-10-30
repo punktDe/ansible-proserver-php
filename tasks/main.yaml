@@ -30,4 +30,4 @@
 
 - name: Set LD_BIND_NOW for the PHP CLI (FreeBSD)
   ansible.builtin.include_tasks: cli_ld_bind_now.yaml
-  when: php.cli.ld_bind_now.enabled and ansible_os_family == 'FreeBSD'
+  when: php.cli.ld_bind_now.enabled and ansible_os_family == 'FreeBSD' and php.cli.ld_bind_now.for_users | length > 0
