@@ -173,12 +173,13 @@ argument_specs:
                 type: dict
                 default:
                   enabled: false
-                  for_users: []
+                  for_users:
+                    - proserver
                   login_class: php_cli
                 description:
                   - Sets `LD_BIND_NOW=1` for the given users through a login class in `/etc/login.conf`,
                     so the dynamic linker resolves all symbols when PHP starts instead of on first use.
-                    Only applies to FreeBSD targets.
+                  - FreeBSD only. Enabling it on any other system fails the play.
                   - Works around PHP CLI processes that segfault on exit on FreeBSD when many extensions are
                     loaded ([FreeBSD PR 295991](https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=295991)).
                     Use it instead of disabling modules for that crash.
@@ -191,13 +192,16 @@ argument_specs:
                     type: bool
                     default: false
                     description:
-                      - Whether the login class is set up and assigned. `false` removes the class and moves the
-                        users back to the `default` class.
+                      - Whether the login class is set up and assigned. `false` removes the class again and
+                        moves those of the users back to the `default` class that are still in it; users in any
+                        other class are left alone.
                   for_users:
                     type: list
-                    default: []
+                    default:
+                      - proserver
                     description:
-                      - List of users that get the login class.
+                      - List of users that get the login class. Defaults to `proserver`; set the full list to
+                        add more users, e.g. the user Ansible connects with.
                   login_class:
                     type: str
                     default: php_cli

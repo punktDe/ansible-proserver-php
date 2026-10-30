@@ -53,5 +53,6 @@ php:
   cli:
     ld_bind_now:
       enabled: no
-      for_users: []
+      for_users:
+        - proserver
       login_class: php_cli

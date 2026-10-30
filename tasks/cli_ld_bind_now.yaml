@@ -16,7 +16,28 @@
   notify: Rebuild the login class database
 
 - name: Assign the login class to the PHP CLI users
+  when: php.cli.ld_bind_now.enabled
   ansible.builtin.user:
     name: "{{ item }}"
-    login_class: "{{ php.cli.ld_bind_now.login_class if php.cli.ld_bind_now.enabled else 'default' }}"
+    login_class: "{{ php.cli.ld_bind_now.login_class }}"
   loop: "{{ php.cli.ld_bind_now.for_users }}"
+
+# When disabled, only users still in our class go back to default; other classes are left alone
+- name: Read the current login class of the PHP CLI users
+  when: not php.cli.ld_bind_now.enabled
+  ansible.builtin.command:
+    argv: [pw, usershow, -n, "{{ item }}"]
+  loop: "{{ php.cli.ld_bind_now.for_users }}"
+  register: php_cli_ld_bind_now_users
+  changed_when: false
+  failed_when: false
+  check_mode: false
+
+- name: Move the PHP CLI users back to the default login class
+  when: not php.cli.ld_bind_now.enabled and item.rc == 0 and item.stdout.split(':')[4] == php.cli.ld_bind_now.login_class
+  ansible.builtin.user:
+    name: "{{ item.item }}"
+    login_class: default
+  loop: "{{ php_cli_ld_bind_now_users.results | default([]) }}"
+  loop_control:
+    label: "{{ item.item }}"
