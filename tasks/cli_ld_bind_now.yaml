@@ -9,7 +9,8 @@
 - name: Manage the login class with LD_BIND_NOW=1  # noqa: no-tabs
   ansible.builtin.blockinfile:
     path: /etc/login.conf
-    marker: "# {mark} ANSIBLE MANAGED BLOCK: {{ php.cli.ld_bind_now.login_class }} login class (LD_BIND_NOW)"
+    # Independent of the class name, so renaming the class replaces the block instead of adding one
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: LD_BIND_NOW workaround (FreeBSD PR 295991)"
     block: "{{ php.cli.ld_bind_now.login_class }}:\\\n\t:setenv=LD_BIND_NOW=1:\\\n\t:tc=default:"
     state: "{{ 'present' if php.cli.ld_bind_now.enabled else 'absent' }}"
   notify: Rebuild the login class database
