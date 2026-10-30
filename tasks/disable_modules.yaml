@@ -18,12 +18,16 @@
 - name: Copy all default modules to the CLI-specific modules directory
   ansible.builtin.copy:
     src: "{{ item.path }}"
-    dest: "{{ php.prefix.modules }}-cli/{{ item.path | basename }}"
+    # Modules disabled for the CLI (or for all SAPIs) are copied straight to .ini.off, never as an active .ini:
+    # copying them as .ini on every run would bring back an active module next to the .ini.off
+    dest: "{{ php.prefix.modules }}-cli/{{ item.path | basename }}{{ '.off' if item.path is search(php_cli_disabled_pattern) else '' }}"
     owner: root
     mode: "0644"
     remote_src: true
   when: php.modules.disable.cli | length > 0 and php_default_modules_list is defined and php_default_modules_list.files | length > 0
   loop: "{{ php_default_modules_list.files | default([]) }}"
+  vars:
+    php_cli_disabled_pattern: "/(ext-)?[0-9]{2}-({{ (php.modules.disable.cli + php.modules.disable.all) | map('regex_escape') | join('|') }})\\.ini$"
   loop_control:
     label: "{{ item.path }}"
   ignore_errors: "{{ ansible_check_mode }}"
@@ -40,19 +44,30 @@
 - name: Check CLI-specific module ini files
   when: php.modules.disable.cli | length > 0
   ansible.builtin.find:
-    patterns: "{{ php.modules.disable.cli | map('regex_replace', '^', '(ext-)?[0-9]{2}-') | map('regex_replace', '$', '\\.ini(?!\\.off)') }}"
+    patterns: "{{ (php.modules.disable.cli + php.modules.disable.all) | map('regex_replace', '^', '(ext-)?[0-9]{2}-') | map('regex_replace', '$', '\\.ini(?!\\.off)') }}"
     use_regex: yes
     paths: "{{ php.prefix.modules }}-cli"
     file_type: any
   register: cli_specific_stats
 
-- name: Disable PHP modules by renaming to .ini.off
-  ansible.builtin.command:
-    creates: "{{ item.path }}.off"
-    argv:
-      - "/bin/mv"
-      - "{{ item.path }}"
-      - "{{ item.path }}.off"
+# Copy + remove instead of `mv` guarded by `creates: .off`: that guard skipped the rename whenever an .ini reappeared
+# (re-copied above, or restored by a package upgrade) next to an existing .ini.off, leaving the module active
+- name: Keep a disabled copy of PHP module ini files as .ini.off
+  ansible.builtin.copy:
+    src: "{{ item.path }}"
+    dest: "{{ item.path }}.off"
+    remote_src: true
+    owner: root
+    mode: "0644"
+  loop: "{{ ((all_sapi_stats | default({})).files | default([])) + ((cli_specific_stats | default({})).files | default([])) }}"
+  loop_control:
+    label: "{{ item.path | basename }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Disable PHP modules by removing their active ini file
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
   loop: "{{ ((all_sapi_stats | default({})).files | default([])) + ((cli_specific_stats | default({})).files | default([])) }}"
   loop_control:
     label: "{{ item.path | basename }}"

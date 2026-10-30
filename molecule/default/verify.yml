@@ -59,7 +59,40 @@
         executable: /bin/bash
         cmd: source ~/.shrc || true && php -m
 
-    - name: Fail if tokenizer and exif are enabled
-      when: "'tokenizer' in php_enabled_modules.stdout or 'exif' in php_enabled_modules.stdout"
+    - name: Fail if tokenizer, exif or calendar are enabled
+      when: "'tokenizer' in php_enabled_modules.stdout or 'exif' in php_enabled_modules.stdout or 'calendar' in php_enabled_modules.stdout"
       ansible.builtin.fail:
-        msg: "tokenizer and exif are still enabled!"
+        msg: "tokenizer, exif or calendar are still enabled!"
+
+    - name: Test PHP modules with the default CLI configuration
+      register: php_default_modules
+      changed_when: no
+      ansible.builtin.command:
+        cmd: php -m
+      environment:
+        PHP_INI_SCAN_DIR: "{{ ansible_local.php.prefix.modules }}"
+
+    - name: Fail if calendar is not enabled with the default CLI configuration
+      when: "'calendar' not in php_default_modules.stdout"
+      ansible.builtin.fail:
+        msg: "calendar is disabled outside the CLI-specific module directory!"
+
+    - name: List the module ini files in the CLI-specific module directory
+      ansible.builtin.find:
+        paths: "{{ ansible_local.php.prefix.modules }}-cli"
+        patterns: "*.ini,*.ini.off"
+        file_type: any
+      register: php_cli_module_files
+
+    - name: Fail if a disabled module has an active ini file or no .ini.off in the CLI-specific module directory
+      vars:
+        php_cli_module_names: "{{ php_cli_module_files.files | map(attribute='path') | map('basename') | list }}"
+      loop:
+        - calendar
+        - exif
+        - tokenizer
+      when: >-
+        php_cli_module_names | select('match', '^(ext-)?[0-9]{2}-' + item + '\\.ini$') | list | length > 0
+        or php_cli_module_names | select('match', '^(ext-)?[0-9]{2}-' + item + '\\.ini\\.off$') | list | length == 0
+      ansible.builtin.fail:
+        msg: "{{ item }} must only exist as .ini.off in {{ ansible_local.php.prefix.modules }}-cli, found: {{ php_cli_module_names | select('search', item) | list }}"
