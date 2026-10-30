@@ -1,0 +1,25 @@
+---
+- name: Prepare
+  hosts: all
+  tasks:
+    - name: Install PHP from the ondrej/php PPA, like version 4.x of this role did on Ubuntu
+      when: ansible_facts['distribution'] == 'Ubuntu' and ansible_facts['distribution_major_version'] | int < 26
+      block:
+        - name: Install python3-debian package with apt
+          ansible.builtin.apt:
+            name: python3-debian
+            update_cache: yes
+
+        - name: Add the ondrej/php PPA
+          ansible.builtin.deb822_repository:
+            name: php
+            uris: https://ppa.launchpadcontent.net/ondrej/php/ubuntu
+            signed_by: https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xb8dc7e53946656efbce4c1dd71daeaab4ad4cab6
+            types: [deb]
+            components: [main]
+            suites: "{{ ansible_facts['distribution_release'] }}"
+
+        - name: Install PHP 8.1 from the PPA
+          ansible.builtin.apt:
+            name: [php8.1-fpm, php8.1-cli]
+            update_cache: yes
